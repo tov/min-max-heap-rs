@@ -226,9 +226,32 @@ impl<'a, T> DoubleEndedIterator for Drain<'a, T> {
 
 impl<'a, T> ExactSizeIterator for Drain<'a, T> { }
 
+//
+// Extend
+//
+
+impl<T: Ord> Extend<T> for MinMaxHeap<T> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for elem in iter {
+            self.push(elem)
+        }
+    }
+}
+
+impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
+    fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iter: I) {
+        for elem in iter {
+            self.push(elem.clone())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    extern crate rand;
+
     use super::*;
+    use self::rand::{Rng,StdRng};
 
     #[test]
     fn example() {
@@ -252,5 +275,65 @@ mod tests {
         assert_eq!(Some(6), h.pop_min());
         assert_eq!(Some(7), h.pop_min());
         assert_eq!(None, h.pop_min());
+    }
+
+    // This test catches a lot:
+    #[test]
+    fn random_vectors() {
+        for i in 0 .. 300 {
+            check_size_min(i);
+            check_size_max(i);
+        }
+    }
+
+    fn check_size_min(len: usize) {
+        let heap = random_heap(len);
+        let vec  = into_vec_asc(heap);
+        assert_eq!(iota_asc(len), vec);
+    }
+
+    fn check_size_max(len: usize) {
+        let heap = random_heap(len);
+        let vec  = into_vec_desc(heap);
+        assert_eq!(iota_desc(len), vec);
+    }
+
+    fn random_vec(len: usize) -> Vec<usize> {
+        let mut result = (0 .. len).collect::<Vec<_>>();
+        let mut rng = StdRng::new().unwrap();
+        rng.shuffle(&mut result);
+        result
+    }
+
+    fn random_heap(len: usize) -> MinMaxHeap<usize> {
+        let mut result = MinMaxHeap::with_capacity(len);
+        result.extend(random_vec(len));
+        result
+    }
+
+    fn into_vec_asc(mut heap: MinMaxHeap<usize>) -> Vec<usize> {
+        let mut result = Vec::with_capacity(heap.len());
+        while let Some(elem) = heap.pop_min() {
+            result.push(elem)
+        }
+        result
+    }
+
+    fn into_vec_desc(mut heap: MinMaxHeap<usize>) -> Vec<usize> {
+        let mut result = Vec::with_capacity(heap.len());
+        while let Some(elem) = heap.pop_max() {
+            result.push(elem)
+        }
+        result
+    }
+
+    fn iota_asc(len: usize) -> Vec<usize> {
+        (0 .. len).collect()
+    }
+
+    fn iota_desc(len: usize) -> Vec<usize> {
+        let mut result = (0 .. len).collect::<Vec<_>>();
+        result.reverse();
+        result
     }
 }
