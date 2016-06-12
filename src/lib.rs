@@ -6,7 +6,12 @@
 
 #![warn(missing_docs)]
 
-use std::{slice, vec};
+use std::{mem, slice, vec};
+
+mod hole;
+mod index;
+
+use self::hole::*;
 
 /// A double-ended priority queue.
 #[derive(Clone, Debug)]
@@ -39,7 +44,67 @@ impl<T> MinMaxHeap<T> {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+}
 
+impl<T: Ord> MinMaxHeap<T> {
+    /// Adds an element to the heap.
+    pub fn push(&mut self, element: T) {
+        let pos = self.len();
+        self.0.push(element);
+        Hole::new(&mut self.0, pos).bubble_up()
+    }
+
+    /// Gets a reference to the minimum element, if any.
+    pub fn peek_min(&self) -> Option<&T> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(&self.0[0])
+        }
+    }
+
+    /// Gets a reference to the maximum element, if any.
+    pub fn peek_max(&self) -> Option<&T> {
+        self.find_max().map(|i| &self.0[i])
+    }
+
+    fn find_max(&self) -> Option<usize> {
+        match self.len() {
+            0 => None,
+            1 => Some(0),
+            2 => Some(1),
+            _ => if &self.0[1] > &self.0[2] { Some(1) } else { Some(2) }
+        }
+    }
+
+    /// Removes the minimum element, if any.
+    pub fn pop_min(&mut self) -> Option<T> {
+        self.0.pop().map(|mut item| {
+            if !self.is_empty() {
+                mem::swap(&mut item, &mut self.0[0]);
+                Hole::new(&mut self.0, 0).trickle_down_min();
+            }
+
+            item
+        })
+    }
+
+    /// Removes the maximum element, if any.
+    pub fn pop_max(&mut self) -> Option<T> {
+        self.find_max().map(|max| {
+            let mut item = self.0.pop().unwrap();
+
+            if max < self.len() {
+                mem::swap(&mut item, &mut self.0[max]);
+                Hole::new(&mut self.0, max).trickle_down_max();
+            }
+
+            item
+        })
+    }
+}
+
+impl<T> MinMaxHeap<T> {
     /// Drops all items from the heap.
     pub fn clear(&mut self) {
         self.0.clear();
@@ -81,20 +146,6 @@ impl<T> MinMaxHeap<T> {
         self.0
     }
 
-    /// Consumes the `MinMaxHeap` and returns its elements in a vector
-    /// in ascending order.
-    pub fn into_ascending_vec(self) -> Vec<T> {
-        unimplemented!();
-    }
-
-    /// Consumes the `MinMaxHeap` and returns its elements in a vector
-    /// in descending order.
-    pub fn into_descending_vec(self) -> Vec<T> {
-        unimplemented!();
-    }
-}
-
-impl<T> MinMaxHeap<T> {
     /// Returns a borrowing iterator over the min-max-heap’s elements in
     /// arbitrary order.
     pub fn iter(&self) -> Iter<T> {
@@ -177,4 +228,29 @@ impl<'a, T> ExactSizeIterator for Drain<'a, T> { }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn example() {
+        let mut h = MinMaxHeap::new();
+        assert!(h.is_empty());
+
+        h.push(5);
+        assert!(!h.is_empty());
+        assert_eq!(Some(&5), h.peek_min());
+        assert_eq!(Some(&5), h.peek_max());
+
+        h.push(7);
+        assert_eq!(Some(&5), h.peek_min());
+        assert_eq!(Some(&7), h.peek_max());
+
+        h.push(6);
+        assert_eq!(Some(&5), h.peek_min());
+        assert_eq!(Some(&7), h.peek_max());
+
+        assert_eq!(Some(5), h.pop_min());
+        assert_eq!(Some(6), h.pop_min());
+        assert_eq!(Some(7), h.pop_min());
+        assert_eq!(None, h.pop_min());
+    }
 }
