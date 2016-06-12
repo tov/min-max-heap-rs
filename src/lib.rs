@@ -30,14 +30,24 @@ impl<T> MinMaxHeap<T> {
         MinMaxHeap(Vec::with_capacity(len))
     }
 
-    /// The number of elements the heap can hold without reallocating.
-    pub fn capacity(&self) -> usize {
-        self.0.capacity()
-    }
-
     /// The number of elements in the heap.
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    /// Is the heap empty?
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Drops all items from the heap.
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    /// The number of elements the heap can hold without reallocating.
+    pub fn capacity(&self) -> usize {
+        self.0.capacity()
     }
 
     /// Reserves the minimum capacity for exactly `additional` more
