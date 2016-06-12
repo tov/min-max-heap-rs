@@ -59,42 +59,51 @@ impl<'a, T> Hole<'a, T> {
 
     /// Swaps the contents of the hole with another position without
     /// moving the hole.
+    #[inline(always)]
     pub fn swap_with_parent(&mut self) {
         assert!(self.pos != 0);
         let parent = self.pos.parent();
         mem::swap(&mut self.data[parent], self.elt.as_mut().unwrap())
     }
 
+    #[inline(always)]
     pub fn has_parent(&self) -> bool {
         self.pos().has_parent()
     }
 
+    #[inline(always)]
     pub fn has_grandparent(&self) -> bool {
         self.pos().has_grandparent()
     }
 
+    #[inline(always)]
     pub fn get_parent(&self) -> &T {
         self.get(self.pos().parent())
     }
 
+    #[inline(always)]
     pub fn get_grandparent(&self) -> &T {
         self.get(self.pos().grandparent())
     }
 
+    #[inline(always)]
     pub fn move_to_parent(&mut self) {
         let dest = self.pos().parent();
         self.move_to(dest);
     }
 
+    #[inline(always)]
     pub fn move_to_grandparent(&mut self) {
         let dest = self.pos().grandparent();
         self.move_to(dest);
     }
 
+    #[inline(always)]
     pub fn on_min_level(&self) -> bool {
         self.pos().is_min_level()
     }
 
+    #[inline]
     fn index_of_best_child_or_grandchild<F>(&self, f: F)
                                             -> (usize, Generation)
             where F: Fn(&T, &T) -> bool {
@@ -128,10 +137,12 @@ impl<'a, T> Hole<'a, T> {
 }
 
 impl<'a, T: Ord + 'a> Hole<'a, T> {
+    #[inline(always)]
     fn index_of_smallest_child_or_grandchild(&self) -> (usize, Generation) {
         self.index_of_best_child_or_grandchild(|a, b| a < b)
     }
 
+    #[inline(always)]
     fn index_of_largest_child_or_grandchild(&self) -> (usize, Generation) {
         self.index_of_best_child_or_grandchild(|a, b| a > b)
     }

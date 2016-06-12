@@ -16,25 +16,36 @@ pub trait HeapIndex {
 }
 
 impl HeapIndex for usize {
+    #[inline(always)]
     fn parent(self) -> Self { (self - 1) / 2 }
+    #[inline(always)]
     fn grandparent(self) -> Self { self.parent().parent() }
 
+    #[inline(always)]
     fn child1(self) -> Self { 2 * self + 1 }
+    #[inline(always)]
     fn child2(self) -> Self { 2 * self + 2 }
 
+    #[inline(always)]
     fn grandchild1(self) -> Self { self.child1().child1() }
+    #[inline(always)]
     fn grandchild2(self) -> Self { self.child1().child2() }
+    #[inline(always)]
     fn grandchild3(self) -> Self { self.child2().child1() }
+    #[inline(always)]
     fn grandchild4(self) -> Self { self.child2().child2() }
 
+    #[inline(always)]
     fn has_parent(self) -> bool {
         self > 0
     }
 
+    #[inline(always)]
     fn has_grandparent(self) -> bool {
         self > 2
     }
 
+    #[inline]
     fn is_min_level(mut self) -> bool {
         let mut result = true;
 
