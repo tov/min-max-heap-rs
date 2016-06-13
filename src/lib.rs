@@ -27,8 +27,10 @@
 //! of this code is also based on `BinaryHeap` from the standard
 //! library.
 
-
 #![warn(missing_docs)]
+
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 use std::iter::FromIterator;
 use std::{mem, slice, vec};
@@ -232,12 +234,6 @@ impl<T> MinMaxHeap<T> {
         Iter(self.0.iter())
     }
 
-    /// Returns a owning iterator over the min-max-heap’s elements in
-    /// arbitrary order.
-    pub fn into_iter(self) -> IntoIter<T> {
-        IntoIter(self.0.into_iter())
-    }
-
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// arbitrary order.
     pub fn drain(&mut self) -> Drain<T> {
@@ -288,7 +284,9 @@ impl<T> ExactSizeIterator for IntoIter<T> { }
 impl<'a, T> IntoIterator for MinMaxHeap<T> {
     type Item = T;
     type IntoIter = IntoIter<T>;
-    fn into_iter(self) -> Self::IntoIter { self.into_iter() }
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter(self.0.into_iter())
+    }
 }
 
 /// A draining iterator over the elements of the min-max-heap in

@@ -25,13 +25,13 @@ impl<'a, T> Hole<'a, T> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn pos(&self) -> usize {
         self.pos
     }
 
     /// Return a reference to the element removed
-    #[inline(always)]
+    #[inline]
     pub fn element(&self) -> &T {
         self.elt.as_ref().unwrap()
     }
@@ -39,7 +39,7 @@ impl<'a, T> Hole<'a, T> {
     /// Return a reference to the element at `index`.
     ///
     /// Panics if the index is out of bounds.
-    #[inline(always)]
+    #[inline]
     pub fn get(&self, index: usize) -> &T {
         assert!(index != self.pos);
         &self.data[index]
@@ -48,7 +48,7 @@ impl<'a, T> Hole<'a, T> {
     /// Move hole to new location
     ///
     /// Unsafe because index must not equal pos.
-    #[inline(always)]
+    #[inline]
     pub fn move_to(&mut self, index: usize) {
         assert!(index != self.pos);
         let index_ptr: *const _ = &self.data[index];
@@ -59,46 +59,46 @@ impl<'a, T> Hole<'a, T> {
 
     /// Swaps the contents of the hole with another position without
     /// moving the hole.
-    #[inline(always)]
+    #[inline]
     pub fn swap_with_parent(&mut self) {
         assert!(self.pos != 0);
         let parent = self.pos.parent();
         mem::swap(&mut self.data[parent], self.elt.as_mut().unwrap())
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn has_parent(&self) -> bool {
         self.pos().has_parent()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn has_grandparent(&self) -> bool {
         self.pos().has_grandparent()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn get_parent(&self) -> &T {
         self.get(self.pos().parent())
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn get_grandparent(&self) -> &T {
         self.get(self.pos().grandparent())
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn move_to_parent(&mut self) {
         let dest = self.pos().parent();
         self.move_to(dest);
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn move_to_grandparent(&mut self) {
         let dest = self.pos().grandparent();
         self.move_to(dest);
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn on_min_level(&self) -> bool {
         self.pos().is_min_level()
     }
@@ -137,12 +137,12 @@ impl<'a, T> Hole<'a, T> {
 }
 
 impl<'a, T: Ord + 'a> Hole<'a, T> {
-    #[inline(always)]
+    #[inline]
     fn index_of_smallest_child_or_grandchild(&self) -> (usize, Generation) {
         self.index_of_best_child_or_grandchild(|a, b| a < b)
     }
 
-    #[inline(always)]
+    #[inline]
     fn index_of_largest_child_or_grandchild(&self) -> (usize, Generation) {
         self.index_of_best_child_or_grandchild(|a, b| a > b)
     }

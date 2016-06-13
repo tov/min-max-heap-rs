@@ -16,31 +16,31 @@ pub trait HeapIndex {
 }
 
 impl HeapIndex for usize {
-    #[inline(always)]
+    #[inline]
     fn parent(self) -> Self { (self - 1) / 2 }
-    #[inline(always)]
+    #[inline]
     fn grandparent(self) -> Self { self.parent().parent() }
 
-    #[inline(always)]
+    #[inline]
     fn child1(self) -> Self { 2 * self + 1 }
-    #[inline(always)]
+    #[inline]
     fn child2(self) -> Self { 2 * self + 2 }
 
-    #[inline(always)]
+    #[inline]
     fn grandchild1(self) -> Self { self.child1().child1() }
-    #[inline(always)]
+    #[inline]
     fn grandchild2(self) -> Self { self.child1().child2() }
-    #[inline(always)]
+    #[inline]
     fn grandchild3(self) -> Self { self.child2().child1() }
-    #[inline(always)]
+    #[inline]
     fn grandchild4(self) -> Self { self.child2().child2() }
 
-    #[inline(always)]
+    #[inline]
     fn has_parent(self) -> bool {
         self > 0
     }
 
-    #[inline(always)]
+    #[inline]
     fn has_grandparent(self) -> bool {
         self > 2
     }

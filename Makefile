@@ -9,6 +9,9 @@ build:
 	cargo build
 	make doc
 
+clippy:
+	rustup run nightly cargo build --features=clippy
+
 doc:
 	cargo doc --no-deps
 	echo "<meta http-equiv='refresh' content='0;url=$(CRATE)/'>" > target/doc/index.html
