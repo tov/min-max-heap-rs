@@ -95,13 +95,17 @@ impl<T: Ord> MinMaxHeap<T> {
         self.find_max().map(|i| &self.0[i])
     }
 
-    fn find_max(&self) -> Option<usize> {
-        match self.len() {
+    fn find_max_len(&self, len: usize) -> Option<usize> {
+        match len {
             0 => None,
             1 => Some(0),
             2 => Some(1),
             _ => if &self.0[1] > &self.0[2] { Some(1) } else { Some(2) }
         }
+    }
+
+    fn find_max(&self) -> Option<usize> {
+        self.find_max_len(self.len())
     }
 
     /// Removes the minimum element, if any.
@@ -185,18 +189,56 @@ impl<T: Ord> MinMaxHeap<T> {
         }
     }
 
+    /// Returns an ascending (sorted) vector, reusing the heap’s
+    /// storage.
+    pub fn into_vec_asc(mut self) -> Vec<T> {
+        let mut end = self.len();
+        while let Some(max) = self.find_max_len(end) {
+            end -= 1;
+            self.0.swap(max, end);
+            self.trickle_down_len(max, end);
+        }
+        self.into_vec()
+    }
+
+    /// Returns an descending (sorted) vector, reusing the heap’s
+    /// storage.
+    pub fn into_vec_desc(mut self) -> Vec<T> {
+        let mut end = self.len();
+        while end > 1 {
+            end -= 1;
+            self.0.swap(0, end);
+            self.trickle_down_min_len(0, end);
+        }
+        self.into_vec()
+    }
+
+    #[inline]
     fn trickle_down_min(&mut self, pos: usize) {
         Hole::new(&mut self.0, pos).trickle_down_min();
     }
 
+    #[inline]
     fn trickle_down_max(&mut self, pos: usize) {
         Hole::new(&mut self.0, pos).trickle_down_max();
     }
 
+    #[inline]
     fn trickle_down(&mut self, pos: usize) {
         Hole::new(&mut self.0, pos).trickle_down();
     }
 
+    #[inline]
+    fn trickle_down_min_len(&mut self, pos: usize, len: usize) {
+        Hole::new(&mut self.0, pos).trickle_down_min_len(len);
+    }
+
+    #[inline]
+    fn trickle_down_len(&mut self, pos: usize, len: usize) {
+        Hole::new(&mut self.0, pos).trickle_down_len(len);
+    }
+
+    #[inline]
     fn bubble_up(&mut self, pos: usize) {
         Hole::new(&mut self.0, pos).bubble_up();
     }
@@ -395,8 +437,8 @@ mod tests {
         assert_eq!(Some(&7), h.peek_max());
 
         assert_eq!(Some(5), h.pop_min());
-        assert_eq!(Some(6), h.pop_min());
-        assert_eq!(Some(7), h.pop_min());
+        assert_eq!(Some(7), h.pop_max());
+        assert_eq!(Some(6), h.pop_max());
         assert_eq!(None, h.pop_min());
     }
 
@@ -404,21 +446,25 @@ mod tests {
     #[test]
     fn random_vectors() {
         for i in 0 .. 300 {
-            check_size_min(i);
-            check_size_max(i);
+            check_heap(&random_heap(i));
         }
     }
 
-    fn check_size_min(len: usize) {
-        let heap = random_heap(len);
-        let vec  = into_vec_asc(heap);
-        assert_eq!(iota_asc(len), vec);
+    #[test]
+    fn from_vector() {
+        for i in 0 .. 300 {
+            check_heap(&MinMaxHeap::from(random_vec(i)))
+        }
     }
 
-    fn check_size_max(len: usize) {
-        let heap = random_heap(len);
-        let vec  = into_vec_desc(heap);
-        assert_eq!(iota_desc(len), vec);
+    fn check_heap(heap: &MinMaxHeap<usize>) {
+        let asc  = iota_asc(heap.len());
+        let desc = iota_desc(heap.len());
+
+        assert_eq!(asc, into_vec_asc(heap.clone()));
+        assert_eq!(desc, into_vec_desc(heap.clone()));
+        assert_eq!(asc, heap.clone().into_vec_asc());
+        assert_eq!(desc, heap.clone().into_vec_desc());
     }
 
     fn random_vec(len: usize) -> Vec<usize> {

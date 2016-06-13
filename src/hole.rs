@@ -104,12 +104,11 @@ impl<'a, T> Hole<'a, T> {
     }
 
     #[inline]
-    fn index_of_best_child_or_grandchild<F>(&self, f: F)
+    fn index_of_best_child_or_grandchild<F>(&self, len: usize, f: F)
                                             -> (usize, Generation)
             where F: Fn(&T, &T) -> bool {
 
         let data = &self.data;
-        let len  = data.len();
 
         let mut pos     = self.pos();
         let mut depth   = Generation::Same;
@@ -138,13 +137,15 @@ impl<'a, T> Hole<'a, T> {
 
 impl<'a, T: Ord + 'a> Hole<'a, T> {
     #[inline]
-    fn index_of_smallest_child_or_grandchild(&self) -> (usize, Generation) {
-        self.index_of_best_child_or_grandchild(|a, b| a < b)
+    fn index_of_smallest_child_or_grandchild(&self, len: usize)
+                                             -> (usize, Generation) {
+        self.index_of_best_child_or_grandchild(len, |a, b| a < b)
     }
 
     #[inline]
-    fn index_of_largest_child_or_grandchild(&self) -> (usize, Generation) {
-        self.index_of_best_child_or_grandchild(|a, b| a > b)
+    fn index_of_largest_child_or_grandchild(&self, len: usize)
+                                            -> (usize, Generation) {
+        self.index_of_best_child_or_grandchild(len, |a, b| a > b)
     }
 
     pub fn bubble_up(&mut self) {
@@ -178,16 +179,31 @@ impl<'a, T: Ord + 'a> Hole<'a, T> {
     }
 
     pub fn trickle_down(&mut self) {
-        if self.on_min_level() {
-            self.trickle_down_min();
-        } else {
-            self.trickle_down_max();
-        }
+        let len = self.data.len();
+        self.trickle_down_len(len);
     }
 
     pub fn trickle_down_min(&mut self) {
+        let len = self.data.len();
+        self.trickle_down_min_len(len);
+    }
+
+    pub fn trickle_down_max(&mut self) {
+        let len = self.data.len();
+        self.trickle_down_max_len(len);
+    }
+
+    pub fn trickle_down_len(&mut self, len: usize) {
+        if self.on_min_level() {
+            self.trickle_down_min_len(len);
+        } else {
+            self.trickle_down_max_len(len);
+        }
+    }
+
+    pub fn trickle_down_min_len(&mut self, len: usize) {
         loop {
-            let (m, gen) = self.index_of_smallest_child_or_grandchild();
+            let (m, gen) = self.index_of_smallest_child_or_grandchild(len);
             match gen {
                 Generation::Grandparent => {
                     self.move_to(m);
@@ -208,9 +224,9 @@ impl<'a, T: Ord + 'a> Hole<'a, T> {
         }
     }
 
-    pub fn trickle_down_max(&mut self) {
+    pub fn trickle_down_max_len(&mut self, len: usize) {
         loop {
-            let (m, gen) = self.index_of_largest_child_or_grandchild();
+            let (m, gen) = self.index_of_largest_child_or_grandchild(len);
             match gen {
                 Generation::Grandparent => {
                     self.move_to(m);
