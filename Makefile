@@ -31,4 +31,3 @@ release:
 
 clean:
 	cargo clean
-	$(RM) src/raw.rs
