@@ -6,6 +6,7 @@
 
 #![warn(missing_docs)]
 
+use std::iter::FromIterator;
 use std::{mem, slice, vec};
 
 mod hole;
@@ -101,6 +102,61 @@ impl<T: Ord> MinMaxHeap<T> {
 
             item
         })
+    }
+
+    /// Pushes an element, then pops the minimum element.
+    ///
+    /// Unlike a push followed by a pop, this combined operation will
+    /// not allocate.
+    pub fn push_pop_min(&mut self, mut element: T) -> T {
+        if self.is_empty() { return element; }
+
+        if &element < &self.0[0] { return element; }
+
+        mem::swap(&mut element, &mut self.0[0]);
+        Hole::new(&mut self.0, 0).trickle_down_min();
+        element
+    }
+
+    /// Pushes an element, then pops the maximum element in an optimized
+    /// fashion.
+    ///
+    /// Unlike a push followed by a pop, this combined operation will
+    /// not allocate.
+    pub fn push_pop_max(&mut self, mut element: T) -> T {
+        if let Some(i) = self.find_max() {
+            if &element > &self.0[i] { return element }
+
+            mem::swap(&mut element, &mut self.0[i]);
+            Hole::new(&mut self.0, i).trickle_down_max();
+            element
+        } else { element }
+    }
+
+    /// Pops the minimum, then pushes an element in an optimized
+    /// fashion.
+    pub fn replace_min(&mut self, mut element: T) -> Option<T> {
+        if self.is_empty() {
+            self.push(element);
+            return None;
+        }
+
+        mem::swap(&mut element, &mut self.0[0]);
+        Hole::new(&mut self.0, 0).trickle_down_min();
+        Some(element)
+    }
+
+    /// Pops the maximum, then pushes an element in an optimized
+    /// fashion.
+    pub fn replace_max(&mut self, mut element: T) -> Option<T> {
+        if let Some(i) = self.find_max() {
+            mem::swap(&mut element, &mut self.0[i]);
+            Hole::new(&mut self.0, i).trickle_down_max();
+            Some(element)
+        } else {
+            self.push(element);
+            None
+        }
     }
 }
 
@@ -226,6 +282,15 @@ impl<'a, T> DoubleEndedIterator for Drain<'a, T> {
 
 impl<'a, T> ExactSizeIterator for Drain<'a, T> { }
 
+impl<T: Ord> FromIterator<T> for MinMaxHeap<T> {
+    fn from_iter<I>(iter: I) -> Self
+            where I: IntoIterator<Item = T> {
+        let mut result = MinMaxHeap::new();
+        result.extend(iter);
+        result
+    }
+}
+
 //
 // Extend
 //
@@ -300,15 +365,13 @@ mod tests {
 
     fn random_vec(len: usize) -> Vec<usize> {
         let mut result = (0 .. len).collect::<Vec<_>>();
-        let mut rng = StdRng::new().unwrap();
-        rng.shuffle(&mut result);
+        StdRng::new().unwrap().shuffle(&mut result);
         result
     }
 
     fn random_heap(len: usize) -> MinMaxHeap<usize> {
-        let mut result = MinMaxHeap::with_capacity(len);
-        result.extend(random_vec(len));
-        result
+        use std::iter::FromIterator;
+        MinMaxHeap::from_iter(random_vec(len))
     }
 
     fn into_vec_asc(mut heap: MinMaxHeap<usize>) -> Vec<usize> {
