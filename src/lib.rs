@@ -78,7 +78,7 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn push(&mut self, element: T) {
         let pos = self.len();
         self.0.push(element);
-        Hole::new(&mut self.0, pos).bubble_up()
+        self.bubble_up(pos);
     }
 
     /// Gets a reference to the minimum element, if any.
@@ -109,7 +109,7 @@ impl<T: Ord> MinMaxHeap<T> {
         self.0.pop().map(|mut item| {
             if !self.is_empty() {
                 mem::swap(&mut item, &mut self.0[0]);
-                Hole::new(&mut self.0, 0).trickle_down_min();
+                self.trickle_down_min(0);
             }
 
             item
@@ -123,7 +123,7 @@ impl<T: Ord> MinMaxHeap<T> {
 
             if max < self.len() {
                 mem::swap(&mut item, &mut self.0[max]);
-                Hole::new(&mut self.0, max).trickle_down_max();
+                self.trickle_down_max(max);
             }
 
             item
@@ -140,7 +140,7 @@ impl<T: Ord> MinMaxHeap<T> {
         if &element < &self.0[0] { return element; }
 
         mem::swap(&mut element, &mut self.0[0]);
-        Hole::new(&mut self.0, 0).trickle_down_min();
+        self.trickle_down_min(0);
         element
     }
 
@@ -154,7 +154,7 @@ impl<T: Ord> MinMaxHeap<T> {
             if &element > &self.0[i] { return element }
 
             mem::swap(&mut element, &mut self.0[i]);
-            Hole::new(&mut self.0, i).trickle_down_max();
+            self.trickle_down_max(i);
             element
         } else { element }
     }
@@ -168,7 +168,7 @@ impl<T: Ord> MinMaxHeap<T> {
         }
 
         mem::swap(&mut element, &mut self.0[0]);
-        Hole::new(&mut self.0, 0).trickle_down_min();
+        self.trickle_down_min(0);
         Some(element)
     }
 
@@ -177,11 +177,35 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
         if let Some(i) = self.find_max() {
             mem::swap(&mut element, &mut self.0[i]);
-            Hole::new(&mut self.0, i).trickle_down_max();
+            self.trickle_down_max(0);
             Some(element)
         } else {
             self.push(element);
             None
+        }
+    }
+
+    fn trickle_down_min(&mut self, pos: usize) {
+        Hole::new(&mut self.0, pos).trickle_down_min();
+    }
+
+    fn trickle_down_max(&mut self, pos: usize) {
+        Hole::new(&mut self.0, pos).trickle_down_max();
+    }
+
+    fn trickle_down(&mut self, pos: usize) {
+        Hole::new(&mut self.0, pos).trickle_down();
+    }
+
+    fn bubble_up(&mut self, pos: usize) {
+        Hole::new(&mut self.0, pos).bubble_up();
+    }
+
+    fn rebuild(&mut self) {
+        let mut n = self.len() / 2;
+        while n > 0 {
+            n -= 1;
+            self.trickle_down(n);
         }
     }
 }
@@ -310,6 +334,18 @@ impl<T: Ord> FromIterator<T> for MinMaxHeap<T> {
         let mut result = MinMaxHeap::new();
         result.extend(iter);
         result
+    }
+}
+
+//
+// From<Vec<_>>
+//
+
+impl<T: Ord> From<Vec<T>> for MinMaxHeap<T> {
+    fn from(vec: Vec<T>) -> Self {
+        let mut heap = MinMaxHeap(vec);
+        heap.rebuild();
+        heap
     }
 }
 

@@ -177,13 +177,13 @@ impl<'a, T: Ord + 'a> Hole<'a, T> {
         }
     }
 
-    // pub fn trickle_down(&mut self) {
-    //     if self.on_min_level() {
-    //         self.trickle_down_min();
-    //     } else {
-    //         self.trickle_down_max();
-    //     }
-    // }
+    pub fn trickle_down(&mut self) {
+        if self.on_min_level() {
+            self.trickle_down_min();
+        } else {
+            self.trickle_down_max();
+        }
+    }
 
     pub fn trickle_down_min(&mut self) {
         loop {
