@@ -1,9 +1,32 @@
 //! A double-ended priority queue.
 //!
-//! A min-max-heap is like a binary heap, but it allows extracting both the
-//! minimum and maximum value efficiently. In particular, finding either the
-//! minimum or maximum element is `O(1)`. A removal of either extremum, or
-//! an insertion, is `O(log n)`.
+//! A min-max-heap is like a binary heap, but it allows extracting both
+//! the minimum and maximum value efficiently. In particular, finding
+//! either the minimum or maximum element is `O(1)`. A removal of either
+//! extremum, or an insertion, is `O(log n)`.
+//!
+//! ## Usage
+//!
+//! It’s [on crates.io](https://crates.io/crates/min-max-heap), so add
+//! this to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! min-max-heap = "*"
+//! ```
+//!
+//! And add this to your crate root:
+//! ```rust
+//! extern crate min_max_heap;
+//! ```
+//!
+//! ## References
+//!
+//! My reference for a min-max heap is
+//! [here](http://cglab.ca/~morin/teaching/5408/refs/minmax.pdf). Much
+//! of this code is also based on `BinaryHeap` from the standard
+//! library.
+
 
 #![warn(missing_docs)]
 
