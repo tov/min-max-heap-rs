@@ -1,8 +1,9 @@
 //! A double-ended priority queue.
 //!
-//! Insertion, removal of the largest element, and removal of the
-//! smallest element all have `O(log n)` time complexity. Checking the
-//! largest or smallest element is `O(1)`.
+//! A min-max-heap is like a binary heap, but it allows extracting both the
+//! minimum and maximum value efficiently. In particular, finding either the
+//! minimum or maximum element is `O(1)`. A removal of either extremum, or
+//! an insertion, is `O(log n)`.
 
 #![warn(missing_docs)]
 

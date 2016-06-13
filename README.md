@@ -6,5 +6,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE-APACHE)
 
 A min-max-heap is like a binary heap, but it allows extracting both the
-minimum and maximum value efficiently.
+minimum and maximum value efficiently. In particular, finding either the
+minimum or maximum element is `O(1)`. A removal of either extremum, or
+an insertion, is `O(log n)`.
 
