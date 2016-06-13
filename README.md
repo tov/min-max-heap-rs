@@ -21,6 +21,7 @@ min-max-heap = "*"
 ```
 
 And add this to your crate root:
+
 ```rust
 extern crate min_max_heap;
 ```
