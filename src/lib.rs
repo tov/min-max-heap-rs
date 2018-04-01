@@ -101,7 +101,7 @@ impl<T: Ord> MinMaxHeap<T> {
             0 => None,
             1 => Some(0),
             2 => Some(1),
-            _ => if &self.0[1] > &self.0[2] { Some(1) } else { Some(2) }
+            _ => if self.0[1] > self.0[2] { Some(1) } else { Some(2) }
         }
     }
 
@@ -142,7 +142,7 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn push_pop_min(&mut self, mut element: T) -> T {
         if self.is_empty() { return element; }
 
-        if &element < &self.0[0] { return element; }
+        if element < self.0[0] { return element; }
 
         mem::swap(&mut element, &mut self.0[0]);
         self.trickle_down_min(0);
@@ -156,7 +156,7 @@ impl<T: Ord> MinMaxHeap<T> {
     /// not allocate.
     pub fn push_pop_max(&mut self, mut element: T) -> T {
         if let Some(i) = self.find_max() {
-            if &element > &self.0[i] { return element }
+            if element > self.0[i] { return element }
 
             mem::swap(&mut element, &mut self.0[i]);
             self.trickle_down_max(i);
