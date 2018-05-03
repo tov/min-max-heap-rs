@@ -46,15 +46,8 @@ impl HeapIndex for usize {
     }
 
     #[inline]
-    fn is_min_level(mut self) -> bool {
-        let mut result = true;
-
-        while self > 0 {
-            self = self.parent();
-            result = !result;
-        }
-
-        result
+    fn is_min_level(self) -> bool {
+        (self + 1).leading_zeros() % 2 == 1
     }
 }
 
