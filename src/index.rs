@@ -47,7 +47,7 @@ impl HeapIndex for usize {
 
     #[inline]
     fn is_min_level(self) -> bool {
-        (self + 1).leading_zeros() % 2 == 1
+        (self + 1).leading_zeros() & 1 == 1
     }
 }
 
