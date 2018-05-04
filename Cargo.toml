@@ -1,6 +1,6 @@
 [package]
 name = "min-max-heap"
-version = "1.0.4"
+version = "1.0.5-pre"
 authors = ["Jesse A. Tov <jesse.tov@gmail.com>"]
 description = "An efficient, double-ended priority queue"
 repository = "https://github.com/tov/min-max-heap-rs"
