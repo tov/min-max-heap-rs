@@ -1,11 +1,12 @@
 use std::{mem, ptr};
+use std::mem::ManuallyDrop;
 
 use super::index::*;
 
 // From std::collections::BinaryHeap:
 pub struct Hole<'a, T: 'a> {
     data: &'a mut [T],
-    elt: Option<T>,
+    elt: ManuallyDrop<T>,
     pos: usize,
 }
 
@@ -19,7 +20,7 @@ impl<'a, T> Hole<'a, T> {
             let elt = ptr::read(&data[pos]);
             Hole {
                 data,
-                elt: Some(elt),
+                elt: ManuallyDrop::new(elt),
                 pos,
             }
         }
@@ -33,7 +34,7 @@ impl<'a, T> Hole<'a, T> {
     /// Return a reference to the element removed
     #[inline]
     pub fn element(&self) -> &T {
-        self.elt.as_ref().unwrap()
+        &self.elt
     }
 
     /// Return a reference to the element at `index`.
@@ -63,7 +64,7 @@ impl<'a, T> Hole<'a, T> {
     pub fn swap_with_parent(&mut self) {
         assert!(self.pos != 0);
         let parent = self.pos.parent();
-        mem::swap(&mut self.data[parent], self.elt.as_mut().unwrap())
+        mem::swap(&mut self.data[parent], &mut self.elt)
     }
 
     #[inline]
@@ -251,7 +252,7 @@ impl<'a, T: Ord + 'a> Hole<'a, T> {
 impl<'a, T> Drop for Hole<'a, T> {
     fn drop(&mut self) {
         unsafe {
-            ptr::write(&mut self.data[self.pos], self.elt.take().unwrap());
+            ptr::copy_nonoverlapping(&*self.elt, &mut self.data[self.pos], 1);
         }
     }
 }
