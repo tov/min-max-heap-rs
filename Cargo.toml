@@ -4,11 +4,10 @@ version = "1.0.5-pre"
 authors = ["Jesse A. Tov <jesse.tov@gmail.com>"]
 description = "An efficient, double-ended priority queue"
 repository = "https://github.com/tov/min-max-heap-rs"
-homepage = "https://github.com/tov/min-max-heap-rs"
-documentation = "http://tov.github.io/min-max-heap-rs/min_max_heap"
 readme = "README.md"
 license = "MIT/Apache-2.0"
 keywords = ["heap", "priority-queue"]
+categories = ["data-structures"]
 
 [dev-dependencies]
 rand = "0.3"
