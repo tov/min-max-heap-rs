@@ -26,6 +26,8 @@ And add this to your crate root:
 extern crate min_max_heap;
 ```
 
+This crate supports Rust version 1.20.0 and later.
+
 ## References
 
 My reference for a min-max heap is
