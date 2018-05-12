@@ -30,6 +30,10 @@
 
 #![warn(missing_docs)]
 
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde;
+
 use std::iter::FromIterator;
 use std::{mem, slice, vec};
 
@@ -40,6 +44,7 @@ use self::hole::*;
 
 /// A double-ended priority queue.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MinMaxHeap<T>(Vec<T>);
 
 impl<T> Default for MinMaxHeap<T> {
