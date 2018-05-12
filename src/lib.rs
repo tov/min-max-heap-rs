@@ -12,7 +12,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! min-max-heap = "1.0"
+//! min-max-heap = "1.1"
 //! ```
 //!
 //! And add this to your crate root:
