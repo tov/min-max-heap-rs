@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/min-max-heap/1.1.0")]
+#![doc(html_root_url = "https://docs.rs/min-max-heap/1.1.1")]
 //! A double-ended priority queue.
 //!
 //! A min-max-heap is like a binary heap, but it allows extracting both
@@ -13,7 +13,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! min-max-heap = "1.1"
+//! min-max-heap = "1.1.1"
 //! ```
 //!
 //! And add this to your crate root:
