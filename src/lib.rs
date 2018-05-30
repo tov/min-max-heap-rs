@@ -1,3 +1,4 @@
+#![doc(html_root_url = "https://docs.rs/min-max-heap/1.1.0")]
 //! A double-ended priority queue.
 //!
 //! A min-max-heap is like a binary heap, but it allows extracting both
