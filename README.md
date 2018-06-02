@@ -17,7 +17,7 @@ this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-min-max-heap = "1.1.1"
+min-max-heap = "1.2.0"
 ```
 
 And add this to your crate root:
