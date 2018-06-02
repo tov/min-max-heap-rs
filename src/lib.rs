@@ -324,6 +324,10 @@ pub struct Iter<'a, T: 'a>(slice::Iter<'a, T>);
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> { self.0.next() }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
 }
 
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
@@ -345,6 +349,10 @@ pub struct IntoIter<T>(vec::IntoIter<T>);
 impl<T> Iterator for IntoIter<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> { self.0.next() }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
 }
 
 impl<T> DoubleEndedIterator for IntoIter<T> {
@@ -368,6 +376,10 @@ pub struct Drain<'a, T: 'a>(vec::Drain<'a, T>);
 impl<'a, T> Iterator for Drain<'a, T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> { self.0.next() }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
 }
 
 impl<'a, T> DoubleEndedIterator for Drain<'a, T> {
