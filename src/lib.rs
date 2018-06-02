@@ -311,6 +311,18 @@ impl<T> MinMaxHeap<T> {
     pub fn drain(&mut self) -> Drain<T> {
         Drain(self.0.drain(..))
     }
+
+    /// Returns a draining iterator over the min-max-heap’s elements in
+    /// ascending (min-first) order.
+    pub fn drain_asc(&mut self) -> DrainAsc<T> {
+        DrainAsc(self)
+    }
+
+    /// Returns a draining iterator over the min-max-heap’s elements in
+    /// descending (max-first) order.
+    pub fn drain_desc(&mut self) -> DrainDesc<T> {
+        DrainDesc(self)
+    }
 }
 
 //
@@ -397,6 +409,84 @@ impl<T: Ord> FromIterator<T> for MinMaxHeap<T> {
     }
 }
 
+/// A draining iterator over the elements of the min-max-heap in
+/// ascending (min-first) order.
+///
+/// Note that each `next()` and `next_back()` operation is
+/// *O*(log *n*) time, so this currently provides no performance
+/// advantage over `pop_min()` and `pop_max()`.
+#[derive(Debug)]
+pub struct DrainAsc<'a, T: 'a>(&'a mut MinMaxHeap<T>);
+
+/// A draining iterator over the elements of the min-max-heap in
+/// descending (max-first) order.
+///
+/// Note that each `next()` and `next_back()` operation is
+/// *O*(log *n*) time, so this currently provides no performance
+/// advantage over `pop_max()` and `pop_min()`.
+#[derive(Debug)]
+pub struct DrainDesc<'a, T: 'a>(&'a mut MinMaxHeap<T>);
+
+impl<'a, T> Drop for DrainAsc<'a, T> {
+    fn drop(&mut self) {
+        let _ = (self.0).0.drain(..);
+    }
+}
+
+impl<'a, T> Drop for DrainDesc<'a, T> {
+    fn drop(&mut self) {
+        let _ = (self.0).0.drain(..);
+    }
+}
+
+impl<'a, T: Ord> Iterator for DrainAsc<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        self.0.pop_min()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), Some(self.len()))
+    }
+}
+
+impl<'a, T: Ord> Iterator for DrainDesc<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        self.0.pop_max()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), Some(self.len()))
+    }
+}
+
+impl<'a, T: Ord> DoubleEndedIterator for DrainAsc<'a, T> {
+    fn next_back(&mut self) -> Option<T> {
+        self.0.pop_max()
+    }
+}
+
+impl<'a, T: Ord> DoubleEndedIterator for DrainDesc<'a, T> {
+    fn next_back(&mut self) -> Option<T> {
+        self.0.pop_min()
+    }
+}
+
+impl<'a, T: Ord> ExactSizeIterator for DrainAsc<'a, T> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a, T: Ord> ExactSizeIterator for DrainDesc<'a, T> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
 //
 // From<Vec<_>>
 //
@@ -458,6 +548,17 @@ mod tests {
         assert_eq!(Some(7), h.pop_max());
         assert_eq!(Some(6), h.pop_max());
         assert_eq!(None, h.pop_min());
+    }
+
+    #[test]
+    fn drain_asc() {
+        let mut h = MinMaxHeap::from(vec![3, 2, 4, 1]);
+        let mut i = h.drain_asc();
+        assert_eq!( i.next(), Some(1) );
+        assert_eq!( i.next(), Some(2) );
+        assert_eq!( i.next(), Some(3) );
+        assert_eq!( i.next(), Some(4) );
+        assert_eq!( i.next(), None );
     }
 
     // This test catches a lot:

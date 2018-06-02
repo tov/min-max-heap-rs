@@ -11,9 +11,13 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
+- Two new iterator types, `DrainAsc` and `DrainDesc`, and two new methods
+  for creating them, `MinMaxHeap::drain_asc` and `MinMaxHeap::drain_desc`.
+  These iterators drain the heap in ascending (min-first) or descending
+  (max-first) order, respectively.
 - Implementations of `Iterator::size_hint` for `Drain`, `IntoIter`, and 
   `Iter` iterator types.
-
+  
 ## [1.1.1] - 2018-05-30
 
 ### Added
