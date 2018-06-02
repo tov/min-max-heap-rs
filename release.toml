@@ -1,5 +1,6 @@
 pre-release-replacements = [
   { file="README.md", search="min-max-heap = \"[0-9.]*\"", replace="min-max-heap = \"{{version}}\"" },
   { file="src/lib.rs", search="min-max-heap = \"[0-9.]*\"", replace="min-max-heap = \"{{version}}\"" },
-  { file="src/lib.rs", search="https://docs[.]rs/min-max-heap/[0-9.]*", replace="https://docs.rs/min-max-heap/{{version}}" }
+  { file="src/lib.rs", search="https://docs[.]rs/min-max-heap/[0-9.]*", replace="https://docs.rs/min-max-heap/{{version}}" },
+  { file="CHANGELOG.md", search="\\[Unreleased\\]", replace="[{{version}}] - {{date}}" }
 ]
