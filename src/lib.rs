@@ -92,7 +92,8 @@ impl<T> MinMaxHeap<T> {
 impl<T: Ord> MinMaxHeap<T> {
     /// Adds an element to the heap.
     ///
-    /// *O*(log *n*).
+    /// Amortized *O*(log *n*); worst-case *O*(*n*) when the backing vector needs to
+    /// grow.
     pub fn push(&mut self, element: T) {
         let pos = self.len();
         self.0.push(element);
