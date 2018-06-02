@@ -42,7 +42,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 - Some simple benchmarks.
 
 ### Changed
-- Internal `is_min_level` function uses `count_zeros` instead of an
+- Internal `is_min_level` function uses `leading_zeros` instead of an
   *O*(log *n*)–time loop.
   
 ## [1.0.2] - 2018-04-01

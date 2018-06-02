@@ -3,8 +3,8 @@
 //!
 //! A min-max-heap is like a binary heap, but it allows extracting both
 //! the minimum and maximum value efficiently. In particular, finding
-//! either the minimum or maximum element is `O(1)`. A removal of either
-//! extremum, or an insertion, is `O(log n)`.
+//! either the minimum or maximum element is *O*(1). A removal of either
+//! extremum, or an insertion, is *O*(log *n*).
 //!
 //! ## Usage
 //!
@@ -46,6 +46,8 @@ mod index;
 use self::hole::*;
 
 /// A double-ended priority queue.
+///
+/// Most operations are *O*(log *n*).
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MinMaxHeap<T>(Vec<T>);
@@ -58,22 +60,30 @@ impl<T> Default for MinMaxHeap<T> {
 
 impl<T> MinMaxHeap<T> {
     /// Creates a new, empty `MinMaxHeap`.
+    ///
+    /// *O*(1).
     pub fn new() -> Self {
         MinMaxHeap(Vec::new())
     }
 
     /// Creates a new, empty `MinMaxHeap` with space allocated to hold
     /// `len` elements.
+    ///
+    /// *O*(n).
     pub fn with_capacity(len: usize) -> Self {
         MinMaxHeap(Vec::with_capacity(len))
     }
 
     /// The number of elements in the heap.
+    ///
+    /// *O*(1).
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
     /// Is the heap empty?
+    ///
+    /// *O*(1).
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -81,6 +91,8 @@ impl<T> MinMaxHeap<T> {
 
 impl<T: Ord> MinMaxHeap<T> {
     /// Adds an element to the heap.
+    ///
+    /// *O*(log *n*).
     pub fn push(&mut self, element: T) {
         let pos = self.len();
         self.0.push(element);
@@ -88,6 +100,8 @@ impl<T: Ord> MinMaxHeap<T> {
     }
 
     /// Gets a reference to the minimum element, if any.
+    ///
+    /// *O*(1).
     pub fn peek_min(&self) -> Option<&T> {
         if self.is_empty() {
             None
@@ -97,6 +111,8 @@ impl<T: Ord> MinMaxHeap<T> {
     }
 
     /// Gets a reference to the maximum element, if any.
+    ///
+    /// *O*(1).
     pub fn peek_max(&self) -> Option<&T> {
         self.find_max().map(|i| &self.0[i])
     }
@@ -115,6 +131,8 @@ impl<T: Ord> MinMaxHeap<T> {
     }
 
     /// Removes the minimum element, if any.
+    ///
+    /// *O*(log *n*).
     pub fn pop_min(&mut self) -> Option<T> {
         self.0.pop().map(|mut item| {
             if !self.is_empty() {
@@ -127,6 +145,8 @@ impl<T: Ord> MinMaxHeap<T> {
     }
 
     /// Removes the maximum element, if any.
+    ///
+    /// *O*(log *n*).
     pub fn pop_max(&mut self) -> Option<T> {
         self.find_max().map(|max| {
             let mut item = self.0.pop().unwrap();
@@ -144,6 +164,8 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// Unlike a push followed by a pop, this combined operation will
     /// not allocate.
+    ///
+    /// *O*(log *n*).
     pub fn push_pop_min(&mut self, mut element: T) -> T {
         if self.is_empty() { return element; }
 
@@ -159,6 +181,8 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// Unlike a push followed by a pop, this combined operation will
     /// not allocate.
+    ///
+    /// *O*(log *n*).
     pub fn push_pop_max(&mut self, mut element: T) -> T {
         if let Some(i) = self.find_max() {
             if element > self.0[i] { return element }
@@ -171,6 +195,8 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Pops the minimum, then pushes an element in an optimized
     /// fashion.
+    ///
+    /// *O*(log *n*).
     pub fn replace_min(&mut self, mut element: T) -> Option<T> {
         if self.is_empty() {
             self.push(element);
@@ -184,6 +210,8 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Pops the maximum, then pushes an element in an optimized
     /// fashion.
+    ///
+    /// *O*(log *n*).
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
         if let Some(i) = self.find_max() {
             mem::swap(&mut element, &mut self.0[i]);
@@ -197,6 +225,8 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Returns an ascending (sorted) vector, reusing the heap’s
     /// storage.
+    ///
+    /// *O*(*n* log *n*).
     pub fn into_vec_asc(mut self) -> Vec<T> {
         let mut end = self.len();
         while let Some(max) = self.find_max_len(end) {
@@ -209,6 +239,8 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Returns an descending (sorted) vector, reusing the heap’s
     /// storage.
+    ///
+    /// *O*(*n* log *n*).
     pub fn into_vec_desc(mut self) -> Vec<T> {
         let mut end = self.len();
         while end > 1 {
@@ -260,17 +292,23 @@ impl<T: Ord> MinMaxHeap<T> {
 
 impl<T> MinMaxHeap<T> {
     /// Drops all items from the heap.
+    ///
+    /// *O*(*n*)
     pub fn clear(&mut self) {
         self.0.clear();
     }
 
     /// The number of elements the heap can hold without reallocating.
+    ///
+    /// *O*(1)
     pub fn capacity(&self) -> usize {
         self.0.capacity()
     }
 
     /// Reserves the minimum capacity for exactly `additional` more
     /// elements to be inserted in the given `MinMaxHeap`.
+    ///
+    /// *O*(*n*)
     ///
     /// # Panics
     ///
@@ -282,6 +320,8 @@ impl<T> MinMaxHeap<T> {
     /// Reserves the minimum capacity for at least `additional` more
     /// elements to be inserted in the given `MinMaxHeap`.
     ///
+    /// *O*(*n*)
+    ///
     /// # Panics
     ///
     /// Panics if the new capacity overflows `usize`.
@@ -290,36 +330,48 @@ impl<T> MinMaxHeap<T> {
     }
 
     /// Discards extra capacity.
+    ///
+    /// *O*(*n*)
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit()
     }
 
     /// Consumes the `MinMaxHeap` and returns its elements in a vector
     /// in arbitrary order.
+    ///
+    /// *O*(*n*)
     pub fn into_vec(self) -> Vec<T> {
         self.0
     }
 
     /// Returns a borrowing iterator over the min-max-heap’s elements in
     /// arbitrary order.
+    ///
+    /// *O*(1) on creation, and *O*(1) for each `next()` operation.
     pub fn iter(&self) -> Iter<T> {
         Iter(self.0.iter())
     }
 
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// arbitrary order.
+    ///
+    /// *O*(1) on creation, and *O*(1) for each `next()` operation.
     pub fn drain(&mut self) -> Drain<T> {
         Drain(self.0.drain(..))
     }
 
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// ascending (min-first) order.
+    ///
+    /// *O*(1) on creation, and *O*(log *n*) for each `next()` operation.
     pub fn drain_asc(&mut self) -> DrainAsc<T> {
         DrainAsc(self)
     }
 
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// descending (max-first) order.
+    ///
+    /// *O*(1) on creation, and *O*(log *n*) for each `next()` operation.
     pub fn drain_desc(&mut self) -> DrainDesc<T> {
         DrainDesc(self)
     }
@@ -331,6 +383,9 @@ impl<T> MinMaxHeap<T> {
 
 /// A borrowed iterator over the elements of the min-max-heap in
 /// arbitrary order.
+///
+/// This type is created with
+/// [`MinMaxHeap::iter`](struct.MinMaxHeap.html#method.iter).
 pub struct Iter<'a, T: 'a>(slice::Iter<'a, T>);
 
 impl<'a, T> Iterator for Iter<'a, T> {
@@ -340,10 +395,6 @@ impl<'a, T> Iterator for Iter<'a, T> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.0.size_hint()
     }
-}
-
-impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
-    fn next_back(&mut self) -> Option<Self::Item> { self.0.next_back() }
 }
 
 impl<'a, T> ExactSizeIterator for Iter<'a, T> { }
@@ -367,10 +418,6 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-impl<T> DoubleEndedIterator for IntoIter<T> {
-    fn next_back(&mut self) -> Option<Self::Item> { self.0.next_back() }
-}
-
 impl<T> ExactSizeIterator for IntoIter<T> { }
 
 impl<'a, T> IntoIterator for MinMaxHeap<T> {
@@ -383,6 +430,9 @@ impl<'a, T> IntoIterator for MinMaxHeap<T> {
 
 /// A draining iterator over the elements of the min-max-heap in
 /// arbitrary order.
+///
+/// This type is created with
+/// [`MinMaxHeap::drain`](struct.MinMaxHeap.html#method.drain).
 pub struct Drain<'a, T: 'a>(vec::Drain<'a, T>);
 
 impl<'a, T> Iterator for Drain<'a, T> {
@@ -392,10 +442,6 @@ impl<'a, T> Iterator for Drain<'a, T> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.0.size_hint()
     }
-}
-
-impl<'a, T> DoubleEndedIterator for Drain<'a, T> {
-    fn next_back(&mut self) -> Option<Self::Item> { self.0.next_back() }
 }
 
 impl<'a, T> ExactSizeIterator for Drain<'a, T> { }
@@ -415,6 +461,9 @@ impl<T: Ord> FromIterator<T> for MinMaxHeap<T> {
 /// Note that each `next()` and `next_back()` operation is
 /// *O*(log *n*) time, so this currently provides no performance
 /// advantage over `pop_min()` and `pop_max()`.
+///
+/// This type is created with
+/// [`MinMaxHeap::drain_asc`](struct.MinMaxHeap.html#method.drain_asc).
 #[derive(Debug)]
 pub struct DrainAsc<'a, T: 'a>(&'a mut MinMaxHeap<T>);
 
@@ -424,6 +473,9 @@ pub struct DrainAsc<'a, T: 'a>(&'a mut MinMaxHeap<T>);
 /// Note that each `next()` and `next_back()` operation is
 /// *O*(log *n*) time, so this currently provides no performance
 /// advantage over `pop_max()` and `pop_min()`.
+///
+/// This type is created with
+/// [`MinMaxHeap::drain_desc`](struct.MinMaxHeap.html#method.drain_desc).
 #[derive(Debug)]
 pub struct DrainDesc<'a, T: 'a>(&'a mut MinMaxHeap<T>);
 
