@@ -57,7 +57,7 @@ impl<T: Arbitrary> Arbitrary for Script<T> {
             .collect())
     }
 
-    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<Iterator<Item=Self>> {
         Box::new(self.0.shrink().map(Script))
     }
 }
