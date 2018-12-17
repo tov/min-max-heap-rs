@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 ### Fixed
 - Documented time complexity of `push` to be worst-case linear and amortized 
   logarithmic.
-- Fixed bug in `MinMaxHeap::replace_max` that was corrupting heap order.
+- Fixed bugs in `MinMaxHeap::replace_max` and `MinMaxHeap::push_pop_max` that 
+  were corrupting the heap order.
 
 ## [1.2.0] - 2018-06-02
 

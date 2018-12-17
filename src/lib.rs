@@ -189,6 +189,11 @@ impl<T: Ord> MinMaxHeap<T> {
             if element > self.0[i] { return element }
 
             mem::swap(&mut element, &mut self.0[i]);
+
+            if self.0[i] < self.0[0] {
+                self.0.swap(0, i);
+            }
+
             self.trickle_down_max(i);
             element
         } else { element }
@@ -689,6 +694,15 @@ mod tests {
         assert_eq!(Some(&3), h.peek_max());
 
         assert_eq!(Some(3), h.replace_max(0));
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&1), h.peek_max());
+    }
+
+    #[test]
+    fn push_pop_max() {
+        let mut h = MinMaxHeap::from(vec![1, 2]);
+        assert_eq!(3, h.push_pop_max(3));
+        assert_eq!(2, h.push_pop_max(0));
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
     }
