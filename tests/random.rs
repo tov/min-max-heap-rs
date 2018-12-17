@@ -95,9 +95,9 @@ impl<T: Clone + Ord> Tester<T> {
     fn check_command(&mut self, cmd: &Command<T>) -> bool {
         use Command::*;
 
-        match cmd {
-            Push(element) =>
-                self.real.push(element.clone()) == self.fake.push(element.clone()),
+        match *cmd {
+            Push(ref e) =>
+                self.real.push(e.clone()) == self.fake.push(e.clone()),
 
             PopMin =>
                 self.real.pop_min() == self.fake.pop_min(),
@@ -105,16 +105,16 @@ impl<T: Clone + Ord> Tester<T> {
             PopMax =>
                 self.real.pop_max() == self.fake.pop_max(),
 
-            PushPopMin(e) =>
+            PushPopMin(ref e) =>
                 self.real.push_pop_min(e.clone()) == self.fake.push_pop_min(e.clone()),
 
-            PushPopMax(e) =>
+            PushPopMax(ref e) =>
                 self.real.push_pop_max(e.clone()) == self.fake.push_pop_max(e.clone()),
 
-            ReplaceMin(e) =>
+            ReplaceMin(ref e) =>
                 self.real.replace_min(e.clone()) == self.fake.replace_min(e.clone()),
 
-            ReplaceMax(e) =>
+            ReplaceMax(ref e) =>
                 self.real.replace_max(e.clone()) == self.fake.replace_max(e.clone()),
         }
     }
