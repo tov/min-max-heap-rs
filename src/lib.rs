@@ -216,7 +216,7 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
         if let Some(i) = self.find_max() {
             mem::swap(&mut element, &mut self.0[i]);
-            self.trickle_down_max(0);
+            self.trickle_down_max(i);
             Some(element)
         } else {
             self.push(element);
@@ -674,5 +674,13 @@ mod tests {
         let mut result = (0 .. len).collect::<Vec<_>>();
         result.reverse();
         result
+    }
+
+    #[test]
+    fn replace_max() {
+        let mut h = MinMaxHeap::from(vec![1, 2]);
+        assert_eq!(Some(2), h.replace_max(3));
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&3), h.peek_max());
     }
 }
