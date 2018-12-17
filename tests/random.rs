@@ -6,17 +6,12 @@ extern crate quickcheck;
 use quickcheck::{Arbitrary, Gen};
 use rand::Rng;
 
-use min_max_heap::MinMaxHeap;
-
 mod fake_heap;
-use fake_heap::FakeHeap;
+
+const SCRIPT_LENGTH: usize = 1000;
 
 quickcheck! {
     fn prop_usize(script: Script<usize>) -> bool {
-        script.check()
-    }
-
-    fn prop_string(script: Script<String>) -> bool {
         script.check()
     }
 }
@@ -57,7 +52,9 @@ impl<T: Arbitrary> Arbitrary for Command<T> {
 
 impl<T: Arbitrary> Arbitrary for Script<T> {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        Script(Vec::<Command<T>>::arbitrary(g))
+        Script((0 .. SCRIPT_LENGTH)
+            .map(|_| Command::<T>::arbitrary(g))
+            .collect())
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
@@ -65,41 +62,23 @@ impl<T: Arbitrary> Arbitrary for Script<T> {
     }
 }
 
-impl<T: Clone + Ord> Script<T> {
+impl<T: Clone + Ord + ::std::fmt::Debug> Script<T> {
     fn check(&self) -> bool {
         let mut tester = Tester::new();
         tester.check_script(self)
     }
 }
 
-#[test]
-fn a_test() {
-    use Command::*;
-
-    let script = Script(vec![
-        Push(4),
-        Push(5),
-        Push(6),
-        PopMin,
-        PopMax,
-        PopMin
-    ]);
-
-    let mut tester = Tester::new();
-
-    assert!(tester.check_script(&script));
-}
-
 struct Tester<T> {
-    real: MinMaxHeap<T>,
-    fake: FakeHeap<T>,
+    real: min_max_heap::MinMaxHeap<T>,
+    fake: fake_heap::FakeHeap<T>,
 }
 
 impl<T: Clone + Ord> Tester<T> {
     fn new() -> Self {
         Tester {
-            real: MinMaxHeap::new(),
-            fake: FakeHeap::new(),
+            real: min_max_heap::MinMaxHeap::new(),
+            fake: fake_heap::FakeHeap::new(),
         }
     }
 
