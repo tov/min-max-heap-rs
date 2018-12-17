@@ -22,7 +22,7 @@
 //! extern crate min_max_heap;
 //! ```
 //!
-//! This crate supports Rust version 1.20.0 and later.
+//! This crate supports Rust version 1.24.0 and later.
 //!
 //! ## References
 //!
