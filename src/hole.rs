@@ -110,26 +110,34 @@ impl<'a, T> Hole<'a, T> {
             where F: Fn(&T, &T) -> bool {
 
         let data = &self.data;
+        let here = self.pos();
 
-        let mut pos     = self.pos();
+        let mut pos     = here;
         let mut depth   = Generation::Same;
         let mut element = self.element();
 
-        for &(i, gen) in &[(pos.child1(), Generation::Parent),
-                           (pos.child2(), Generation::Parent),
-                           (pos.grandchild1(), Generation::Grandparent),
-                           (pos.grandchild2(), Generation::Grandparent),
-                           (pos.grandchild3(), Generation::Grandparent),
-                           (pos.grandchild4(), Generation::Grandparent)] {
-            if i < len {
-                if f(&data[i], element) {
-                    pos = i;
-                    depth = gen;
-                    element = &data[i];
+        {
+            let mut check = |i, gen| {
+                if i < len {
+                    if f(&data[i], element) {
+                        pos = i;
+                        depth = gen;
+                        element = &data[i];
+                    }
+
+                    true
+                } else {
+                    false
                 }
-            } else {
-                break
-            }
+            };
+
+            let _ =
+                check(here.child1(), Generation::Parent) &&
+                check(here.child2(), Generation::Parent) &&
+                check(here.grandchild1(), Generation::Grandparent) &&
+                check(here.grandchild2(), Generation::Grandparent) &&
+                check(here.grandchild3(), Generation::Grandparent) &&
+                check(here.grandchild4(), Generation::Grandparent);
         }
 
         (pos, depth)
