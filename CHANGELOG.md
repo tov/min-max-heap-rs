@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
+## [Unreleased]
+
+### Fixed
+- Removed syntax not accepted by older rustc.
+
 ## [1.2.1] - 2018-12-17
 
 ### Fixed
