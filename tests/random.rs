@@ -84,8 +84,8 @@ impl<T: Clone + Ord> Tester<T> {
     }
 
     fn check_script(&mut self, script: &Script<T>) -> bool {
-        script.0.iter().all(|(cmd, elt)|
-            self.check_command(*cmd, elt) && self.check_extrema())
+        script.0.iter().all(|&(cmd, ref elt)|
+            self.check_command(cmd, elt) && self.check_extrema())
     }
 
     fn check_extrema(&self) -> bool {
