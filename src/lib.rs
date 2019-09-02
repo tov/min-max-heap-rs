@@ -145,14 +145,11 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// *O*(1) for the peek; *O*(log *n*) when the reference is dropped.
     pub fn peek_max_mut(&mut self) -> Option<PeekMaxMut<'_, T>> {
-        match self.find_max() {
-            Some(i) => Some(PeekMaxMut {
-                heap: self,
-                max: i,
-                sift: true,
-            }),
-            None => None
-        }
+        self.find_max().map(move |i| PeekMaxMut {
+            heap: self,
+            max: i,
+            sift: true,
+        })
     }
 
     fn find_max_len(&self, len: usize) -> Option<usize> {
@@ -619,7 +616,7 @@ impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
     }
 }
 
-/// Structure wrapping a mutable reference to the greatest item on a
+/// Structure wrapping a mutable reference to the minumum item on a
 /// `MinMaxHeap`.
 ///
 /// This `struct` is created by the [`peek_min_mut`] method on [`MinMaxHeap`]. See
@@ -667,14 +664,14 @@ impl<T: Ord> DerefMut for PeekMinMut<'_, T> {
 
 impl<'a, T: Ord> PeekMinMut<'a, T> {
     /// Removes the peeked value from the heap and returns it.
-    pub fn pop(mut this: PeekMinMut<'a, T>) -> T {
-        let value = this.heap.pop_min().unwrap();
-        this.sift = false;
+    pub fn pop(mut self) -> T {
+        let value = self.heap.pop_min().unwrap();
+        self.sift = false;
         value
     }
 }
 
-/// Structure wrapping a mutable reference to the greatest item on a
+/// Structure wrapping a mutable reference to the maximum item on a
 /// `MinMaxHeap`.
 ///
 /// This `struct` is created by the [`peek_max_mut`] method on [`MinMaxHeap`]. See
@@ -727,9 +724,9 @@ impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
 
 impl<'a, T: Ord> PeekMaxMut<'a, T> {
     /// Removes the peeked value from the heap and returns it.
-    pub fn pop(mut this: PeekMaxMut<'a, T>) -> T {
-        let value = this.heap.pop_max().unwrap();
-        this.sift = false;
+    pub fn pop(mut self) -> T {
+        let value = self.heap.pop_max().unwrap();
+        self.sift = false;
         value
     }
 }
@@ -848,6 +845,38 @@ mod tests {
         assert_eq!(Some(3), h.replace_max(0));
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
+    }
+
+    #[test]
+    fn peek_min_mut() {
+        let mut h = MinMaxHeap::from(vec![2, 3, 4]);
+        *(h.peek_min_mut().unwrap()) = 1;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&4), h.peek_max());
+
+        *(h.peek_min_mut().unwrap()) = 8;
+        assert_eq!(Some(&3), h.peek_min());
+        assert_eq!(Some(&8), h.peek_max());
+
+        assert_eq!(3, h.peek_min_mut().unwrap().pop());
+        assert_eq!(Some(&4), h.peek_min());
+        assert_eq!(Some(&8), h.peek_max());
+    }
+
+    #[test]
+    fn peek_max_mut() {
+        let mut h = MinMaxHeap::from(vec![1, 2]);
+        *(h.peek_max_mut().unwrap()) = 3;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&3), h.peek_max());
+
+        *(h.peek_max_mut().unwrap()) = 0;
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&1), h.peek_max());
+
+        assert_eq!(1, h.peek_max_mut().unwrap().pop());
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&0), h.peek_max());
     }
 
     #[test]
