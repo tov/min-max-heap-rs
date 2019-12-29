@@ -850,11 +850,11 @@ mod tests {
     #[test]
     fn peek_min_mut() {
         let mut h = MinMaxHeap::from(vec![2, 3, 4]);
-        *(h.peek_min_mut().unwrap()) = 1;
+        *h.peek_min_mut().unwrap() = 1;
         assert_eq!(Some(&1), h.peek_min());
         assert_eq!(Some(&4), h.peek_max());
 
-        *(h.peek_min_mut().unwrap()) = 8;
+        *h.peek_min_mut().unwrap() = 8;
         assert_eq!(Some(&3), h.peek_min());
         assert_eq!(Some(&8), h.peek_max());
 
@@ -866,11 +866,11 @@ mod tests {
     #[test]
     fn peek_max_mut() {
         let mut h = MinMaxHeap::from(vec![1, 2]);
-        *(h.peek_max_mut().unwrap()) = 3;
+        *h.peek_max_mut().unwrap() = 3;
         assert_eq!(Some(&1), h.peek_min());
         assert_eq!(Some(&3), h.peek_max());
 
-        *(h.peek_max_mut().unwrap()) = 0;
+        *h.peek_max_mut().unwrap() = 0;
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
 
