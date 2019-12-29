@@ -119,7 +119,7 @@ impl<T: Ord> MinMaxHeap<T> {
     /// inconsistent state.
     ///
     /// *O*(1) for the peek; *O*(log *n*) when the reference is dropped.
-    pub fn peek_min_mut(&mut self) -> Option<PeekMinMut<'_, T>> {
+    pub fn peek_min_mut(&mut self) -> Option<PeekMinMut<T>> {
         if self.is_empty() {
             None
         } else {
@@ -144,7 +144,7 @@ impl<T: Ord> MinMaxHeap<T> {
     /// inconsistent state.
     ///
     /// *O*(1) for the peek; *O*(log *n*) when the reference is dropped.
-    pub fn peek_max_mut(&mut self) -> Option<PeekMaxMut<'_, T>> {
+    pub fn peek_max_mut(&mut self) -> Option<PeekMaxMut<T>> {
         self.find_max().map(move |i| PeekMaxMut {
             heap: self,
             max: i,
@@ -616,7 +616,7 @@ impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
     }
 }
 
-/// Structure wrapping a mutable reference to the minumum item on a
+/// Structure wrapping a mutable reference to the minimum item on a
 /// `MinMaxHeap`.
 ///
 /// This `struct` is created by the [`peek_min_mut`] method on [`MinMaxHeap`]. See
