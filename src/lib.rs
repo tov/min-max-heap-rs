@@ -710,7 +710,7 @@ impl<T: Ord> Drop for PeekMaxMut<'_, T> {
 impl<T: Ord> Deref for PeekMaxMut<'_, T> {
     type Target = T;
     fn deref(&self) -> &T {
-        debug_assert!(!self.heap.is_empty());
+        debug_assert!(self.max_index < self.heap.len());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps
         unsafe { self.heap.0.get_unchecked(self.max_index) }
     }
@@ -718,7 +718,7 @@ impl<T: Ord> Deref for PeekMaxMut<'_, T> {
 
 impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
     fn deref_mut(&mut self) -> &mut T {
-        debug_assert!(!self.heap.is_empty());
+        debug_assert!(self.max_index < self.heap.len());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps
         unsafe { self.heap.0.get_unchecked_mut(self.max_index) }
     }
