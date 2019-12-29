@@ -125,7 +125,7 @@ impl<T: Ord> MinMaxHeap<T> {
         } else {
             Some(PeekMinMut {
                 heap: self,
-                sift: true,
+                removed: false,
             })
         }
     }
@@ -147,8 +147,8 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn peek_max_mut(&mut self) -> Option<PeekMaxMut<T>> {
         self.find_max().map(move |i| PeekMaxMut {
             heap: self,
-            max: i,
-            sift: true,
+            max_index: i,
+            removed: false,
         })
     }
 
@@ -626,7 +626,7 @@ impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
 /// [`MinMaxHeap`]: struct.MinMaxHeap.html
 pub struct PeekMinMut<'a, T: 'a + Ord> {
     heap: &'a mut MinMaxHeap<T>,
-    sift: bool,
+    removed: bool,
 }
 
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
@@ -639,7 +639,7 @@ impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
 
 impl<T: Ord> Drop for PeekMinMut<'_, T> {
     fn drop(&mut self) {
-        if self.sift {
+        if !self.removed {
             self.heap.trickle_down_min(0);
         }
     }
@@ -666,7 +666,7 @@ impl<'a, T: Ord> PeekMinMut<'a, T> {
     /// Removes the peeked value from the heap and returns it.
     pub fn pop(mut self) -> T {
         let value = self.heap.pop_min().unwrap();
-        self.sift = false;
+        self.removed = true;
         value
     }
 }
@@ -681,26 +681,28 @@ impl<'a, T: Ord> PeekMinMut<'a, T> {
 /// [`MinMaxHeap`]: struct.MinMaxHeap.html
 pub struct PeekMaxMut<'a, T: 'a + Ord> {
     heap: &'a mut MinMaxHeap<T>,
-    max: usize,
-    sift: bool,
+    max_index: usize,
+    removed: bool,
 }
 
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("PeekMaxMut")
-         .field(&self.heap.0[self.max])
+         .field(&self.heap.0[self.max_index])
          .finish()
     }
 }
 
 impl<T: Ord> Drop for PeekMaxMut<'_, T> {
     fn drop(&mut self) {
-        if self.sift {
-            if self.heap.0[self.max] < self.heap.0[0] {
-                self.heap.0.swap(0, self.max);
+        if !self.removed {
+            let mut hole = Hole::new(&mut self.heap.0, self.max_index);
+
+            if hole.element() < hole.get_parent() {
+                hole.swap_with_parent();
             }
 
-            self.heap.trickle_down_max(self.max);
+            hole.trickle_down_max();
         }
     }
 }
@@ -710,7 +712,7 @@ impl<T: Ord> Deref for PeekMaxMut<'_, T> {
     fn deref(&self) -> &T {
         debug_assert!(!self.heap.is_empty());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps
-        unsafe { self.heap.0.get_unchecked(self.max) }
+        unsafe { self.heap.0.get_unchecked(self.max_index) }
     }
 }
 
@@ -718,7 +720,7 @@ impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
     fn deref_mut(&mut self) -> &mut T {
         debug_assert!(!self.heap.is_empty());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps
-        unsafe { self.heap.0.get_unchecked_mut(self.max) }
+        unsafe { self.heap.0.get_unchecked_mut(self.max_index) }
     }
 }
 
@@ -726,7 +728,7 @@ impl<'a, T: Ord> PeekMaxMut<'a, T> {
     /// Removes the peeked value from the heap and returns it.
     pub fn pop(mut self) -> T {
         let value = self.heap.pop_max().unwrap();
-        self.sift = false;
+        self.removed = true;
         value
     }
 }
