@@ -16,7 +16,7 @@
 //! min-max-heap = "1.2.2"
 //! ```
 //!
-//! This crate supports Rust version 1.31.0 and later.
+//! This crate supports Rust version 1.32.0 and later.
 //!
 //! ## References
 //!

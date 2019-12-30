@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 - Methods `MinMaxHeap::peek_min_mut` and `MinMaxHeap::peek_max_mut`*.
 
 ### Changed
-- Oldest supported rustc version is now 1.31.0.
+- Oldest supported rustc version is now 1.32.0.
 - Updated dev dependencies `rand` (0.5 to 0.7) and `quickcheck` (0.7.2
   to 0.9).
 
