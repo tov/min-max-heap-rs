@@ -17,7 +17,7 @@ this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-min-max-heap = "1.2.2"
+min-max-heap = "1.3.0"
 ```
 
 This crate supports Rust version 1.32.0 and later.

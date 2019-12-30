@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
-## [Unreleased]
+## [1.3.0] - 2019-12-29
 
 ### Added
 - Methods `MinMaxHeap::peek_min_mut` and `MinMaxHeap::peek_max_mut`*.

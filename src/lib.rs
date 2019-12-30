@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/min-max-heap/1.2.2")]
+#![doc(html_root_url = "https://docs.rs/min-max-heap/1.3.0")]
 //! A double-ended priority queue.
 //!
 //! A min-max-heap is like a binary heap, but it allows extracting both
@@ -13,7 +13,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! min-max-heap = "1.2.2"
+//! min-max-heap = "1.3.0"
 //! ```
 //!
 //! This crate supports Rust version 1.32.0 and later.
