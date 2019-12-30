@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ### Changed
 - Oldest supported rustc version is now 1.31.0.
+- Updated dev dependencies `rand` (0.5 to 0.7) and `quickcheck` (0.7.2
+  to 0.9).
 
 ## [1.2.2] - 2018-12-17
 
