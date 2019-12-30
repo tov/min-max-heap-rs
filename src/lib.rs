@@ -22,7 +22,7 @@
 //! extern crate min_max_heap;
 //! ```
 //!
-//! This crate supports Rust version 1.24.0 and later.
+//! This crate supports Rust version 1.31.0 and later.
 //!
 //! ## References
 //!
@@ -38,7 +38,8 @@
 extern crate serde;
 
 use std::iter::FromIterator;
-use std::{mem, slice, vec};
+use std::{fmt, mem, slice, vec};
+use std::ops::{Deref, DerefMut};
 
 mod hole;
 mod index;
@@ -111,11 +112,44 @@ impl<T: Ord> MinMaxHeap<T> {
         }
     }
 
+    /// Returns a mutable reference to the minimum element, if any. Once this reference is dropped,
+    /// the heap is adjusted if necessary.
+    ///
+    /// Note: If the `PeekMinMut` value is leaked, the heap may be in an
+    /// inconsistent state.
+    ///
+    /// *O*(1) for the peek; *O*(log *n*) when the reference is dropped.
+    pub fn peek_min_mut(&mut self) -> Option<PeekMinMut<T>> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(PeekMinMut {
+                heap: self,
+                removed: false,
+            })
+        }
+    }
+
     /// Gets a reference to the maximum element, if any.
     ///
     /// *O*(1).
     pub fn peek_max(&self) -> Option<&T> {
         self.find_max().map(|i| &self.0[i])
+    }
+
+    /// Returns a mutable reference to the maximum element, if any. Once this reference is dropped,
+    /// the heap is adjusted if necessary.
+    ///
+    /// Note: If the `PeekMaxMut` value is leaked, the heap may be in an
+    /// inconsistent state.
+    ///
+    /// *O*(1) for the peek; *O*(log *n*) when the reference is dropped.
+    pub fn peek_max_mut(&mut self) -> Option<PeekMaxMut<T>> {
+        self.find_max().map(move |i| PeekMaxMut {
+            heap: self,
+            max_index: i,
+            removed: false,
+        })
     }
 
     fn find_max_len(&self, len: usize) -> Option<usize> {
@@ -582,6 +616,123 @@ impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
     }
 }
 
+/// Structure wrapping a mutable reference to the minimum item on a
+/// `MinMaxHeap`.
+///
+/// This `struct` is created by the [`peek_min_mut`] method on [`MinMaxHeap`]. See
+/// its documentation for more.
+///
+/// [`peek_min_mut`]: struct.MinMaxHeap.html#method.peek_min_mut
+/// [`MinMaxHeap`]: struct.MinMaxHeap.html
+pub struct PeekMinMut<'a, T: 'a + Ord> {
+    heap: &'a mut MinMaxHeap<T>,
+    removed: bool,
+}
+
+impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_tuple("PeekMinMut")
+         .field(&self.heap.0[0])
+         .finish()
+    }
+}
+
+impl<T: Ord> Drop for PeekMinMut<'_, T> {
+    fn drop(&mut self) {
+        if !self.removed {
+            self.heap.trickle_down_min(0);
+        }
+    }
+}
+
+impl<T: Ord> Deref for PeekMinMut<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        debug_assert!(!self.heap.is_empty());
+        // SAFE: PeekMinMut is only instantiated for non-empty heaps
+        unsafe { self.heap.0.get_unchecked(0) }
+    }
+}
+
+impl<T: Ord> DerefMut for PeekMinMut<'_, T> {
+    fn deref_mut(&mut self) -> &mut T {
+        debug_assert!(!self.heap.is_empty());
+        // SAFE: PeekMinMut is only instantiated for non-empty heaps
+        unsafe { self.heap.0.get_unchecked_mut(0) }
+    }
+}
+
+impl<'a, T: Ord> PeekMinMut<'a, T> {
+    /// Removes the peeked value from the heap and returns it.
+    pub fn pop(mut self) -> T {
+        let value = self.heap.pop_min().unwrap();
+        self.removed = true;
+        value
+    }
+}
+
+/// Structure wrapping a mutable reference to the maximum item on a
+/// `MinMaxHeap`.
+///
+/// This `struct` is created by the [`peek_max_mut`] method on [`MinMaxHeap`]. See
+/// its documentation for more.
+///
+/// [`peek_max_mut`]: struct.MinMaxHeap.html#method.peek_max_mut
+/// [`MinMaxHeap`]: struct.MinMaxHeap.html
+pub struct PeekMaxMut<'a, T: 'a + Ord> {
+    heap: &'a mut MinMaxHeap<T>,
+    max_index: usize,
+    removed: bool,
+}
+
+impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_tuple("PeekMaxMut")
+         .field(&self.heap.0[self.max_index])
+         .finish()
+    }
+}
+
+impl<T: Ord> Drop for PeekMaxMut<'_, T> {
+    fn drop(&mut self) {
+        if !self.removed {
+            let mut hole = Hole::new(&mut self.heap.0, self.max_index);
+
+            if hole.element() < hole.get_parent() {
+                hole.swap_with_parent();
+            }
+
+            hole.trickle_down_max();
+        }
+    }
+}
+
+impl<T: Ord> Deref for PeekMaxMut<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        debug_assert!(self.max_index < self.heap.len());
+        // SAFE: PeekMaxMut is only instantiated for non-empty heaps
+        unsafe { self.heap.0.get_unchecked(self.max_index) }
+    }
+}
+
+impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
+    fn deref_mut(&mut self) -> &mut T {
+        debug_assert!(self.max_index < self.heap.len());
+        // SAFE: PeekMaxMut is only instantiated for non-empty heaps
+        unsafe { self.heap.0.get_unchecked_mut(self.max_index) }
+    }
+}
+
+impl<'a, T: Ord> PeekMaxMut<'a, T> {
+    /// Removes the peeked value from the heap and returns it.
+    pub fn pop(mut self) -> T {
+        let value = self.heap.pop_max().unwrap();
+        self.removed = true;
+        value
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate rand;
@@ -696,6 +847,38 @@ mod tests {
         assert_eq!(Some(3), h.replace_max(0));
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
+    }
+
+    #[test]
+    fn peek_min_mut() {
+        let mut h = MinMaxHeap::from(vec![2, 3, 4]);
+        *h.peek_min_mut().unwrap() = 1;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&4), h.peek_max());
+
+        *h.peek_min_mut().unwrap() = 8;
+        assert_eq!(Some(&3), h.peek_min());
+        assert_eq!(Some(&8), h.peek_max());
+
+        assert_eq!(3, h.peek_min_mut().unwrap().pop());
+        assert_eq!(Some(&4), h.peek_min());
+        assert_eq!(Some(&8), h.peek_max());
+    }
+
+    #[test]
+    fn peek_max_mut() {
+        let mut h = MinMaxHeap::from(vec![1, 2]);
+        *h.peek_max_mut().unwrap() = 3;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&3), h.peek_max());
+
+        *h.peek_max_mut().unwrap() = 0;
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&1), h.peek_max());
+
+        assert_eq!(1, h.peek_max_mut().unwrap().pop());
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&0), h.peek_max());
     }
 
     #[test]

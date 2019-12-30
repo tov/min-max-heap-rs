@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
+## [Unreleased]
+
+### Added
+- Methods `MinMaxHeap::peek_min_mut` and `MinMaxHeap::peek_max_mut`*.
+
+### Changed
+- Oldest supported rustc version is now 1.31.0.
+
 ## [1.2.2] - 2018-12-17
 
 ### Fixed
