@@ -629,15 +629,15 @@ pub struct PeekMinMut<'a, T: 'a + Ord> {
     removed: bool,
 }
 
-impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<'a, T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'a, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMinMut")
          .field(&self.heap.0[0])
          .finish()
     }
 }
 
-impl<T: Ord> Drop for PeekMinMut<'_, T> {
+impl<'a, T: Ord> Drop for PeekMinMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
             self.heap.trickle_down_min(0);
@@ -645,7 +645,7 @@ impl<T: Ord> Drop for PeekMinMut<'_, T> {
     }
 }
 
-impl<T: Ord> Deref for PeekMinMut<'_, T> {
+impl<'a, T: Ord> Deref for PeekMinMut<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {
         debug_assert!(!self.heap.is_empty());
@@ -654,7 +654,7 @@ impl<T: Ord> Deref for PeekMinMut<'_, T> {
     }
 }
 
-impl<T: Ord> DerefMut for PeekMinMut<'_, T> {
+impl<'a, T: Ord> DerefMut for PeekMinMut<'a, T> {
     fn deref_mut(&mut self) -> &mut T {
         debug_assert!(!self.heap.is_empty());
         // SAFE: PeekMinMut is only instantiated for non-empty heaps
@@ -685,15 +685,15 @@ pub struct PeekMaxMut<'a, T: 'a + Ord> {
     removed: bool,
 }
 
-impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<'a, T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'a, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMaxMut")
          .field(&self.heap.0[self.max_index])
          .finish()
     }
 }
 
-impl<T: Ord> Drop for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> Drop for PeekMaxMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
             let mut hole = Hole::new(&mut self.heap.0, self.max_index);
@@ -707,7 +707,7 @@ impl<T: Ord> Drop for PeekMaxMut<'_, T> {
     }
 }
 
-impl<T: Ord> Deref for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> Deref for PeekMaxMut<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {
         debug_assert!(self.max_index < self.heap.len());
@@ -716,7 +716,7 @@ impl<T: Ord> Deref for PeekMaxMut<'_, T> {
     }
 }
 
-impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> DerefMut for PeekMaxMut<'a, T> {
     fn deref_mut(&mut self) -> &mut T {
         debug_assert!(self.max_index < self.heap.len());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps

@@ -1,9 +1,10 @@
 language: rust
 rust:
-  - stable
-  - beta
-  - nightly
   - 1.24.0
+  - 1.26.0
+  - 1.29.0
+  - 1.30.0
+  - 1.31.0
 
 # helpful for kcov
 env:
