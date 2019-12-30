@@ -630,7 +630,7 @@ pub struct PeekMinMut<'a, T: 'a + Ord> {
 }
 
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMinMut")
          .field(&self.heap.0[0])
          .finish()
@@ -686,7 +686,7 @@ pub struct PeekMaxMut<'a, T: 'a + Ord> {
 }
 
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMaxMut")
          .field(&self.heap.0[self.max_index])
          .finish()
