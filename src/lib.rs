@@ -16,12 +16,6 @@
 //! min-max-heap = "1.2.2"
 //! ```
 //!
-//! And add this to your crate root:
-//!
-//! ```rust
-//! extern crate min_max_heap;
-//! ```
-//!
 //! This crate supports Rust version 1.31.0 and later.
 //!
 //! ## References
@@ -34,8 +28,7 @@
 #![warn(missing_docs)]
 
 #[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde;
+use serde::{Serialize, Deserialize};
 
 use std::iter::FromIterator;
 use std::{fmt, mem, slice, vec};
@@ -637,7 +630,7 @@ impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
     }
 }
 
-impl<T: Ord> Drop for PeekMinMut<'_, T> {
+impl<'a, T: Ord> Drop for PeekMinMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
             self.heap.trickle_down_min(0);
@@ -645,7 +638,7 @@ impl<T: Ord> Drop for PeekMinMut<'_, T> {
     }
 }
 
-impl<T: Ord> Deref for PeekMinMut<'_, T> {
+impl<'a, T: Ord> Deref for PeekMinMut<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {
         debug_assert!(!self.heap.is_empty());
@@ -654,7 +647,7 @@ impl<T: Ord> Deref for PeekMinMut<'_, T> {
     }
 }
 
-impl<T: Ord> DerefMut for PeekMinMut<'_, T> {
+impl<'a, T: Ord> DerefMut for PeekMinMut<'a, T> {
     fn deref_mut(&mut self) -> &mut T {
         debug_assert!(!self.heap.is_empty());
         // SAFE: PeekMinMut is only instantiated for non-empty heaps
@@ -693,7 +686,7 @@ impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
     }
 }
 
-impl<T: Ord> Drop for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> Drop for PeekMaxMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
             let mut hole = Hole::new(&mut self.heap.0, self.max_index);
@@ -707,7 +700,7 @@ impl<T: Ord> Drop for PeekMaxMut<'_, T> {
     }
 }
 
-impl<T: Ord> Deref for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> Deref for PeekMaxMut<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {
         debug_assert!(self.max_index < self.heap.len());
@@ -716,7 +709,7 @@ impl<T: Ord> Deref for PeekMaxMut<'_, T> {
     }
 }
 
-impl<T: Ord> DerefMut for PeekMaxMut<'_, T> {
+impl<'a, T: Ord> DerefMut for PeekMaxMut<'a, T> {
     fn deref_mut(&mut self) -> &mut T {
         debug_assert!(self.max_index < self.heap.len());
         // SAFE: PeekMaxMut is only instantiated for non-empty heaps
@@ -738,7 +731,7 @@ mod tests {
     extern crate rand;
 
     use super::*;
-    use self::rand::Rng;
+    use self::rand::seq::SliceRandom;
 
     #[test]
     fn example() {
@@ -802,12 +795,11 @@ mod tests {
 
     fn random_vec(len: usize) -> Vec<usize> {
         let mut result = (0 .. len).collect::<Vec<_>>();
-        rand::thread_rng().shuffle(&mut result);
+        result.shuffle(&mut rand::thread_rng());
         result
     }
 
     fn random_heap(len: usize) -> MinMaxHeap<usize> {
-        use std::iter::FromIterator;
         MinMaxHeap::from_iter(random_vec(len))
     }
 

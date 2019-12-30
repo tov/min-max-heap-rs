@@ -20,12 +20,6 @@ this to your `Cargo.toml`:
 min-max-heap = "1.2.2"
 ```
 
-And add this to your crate root:
-
-```rust
-extern crate min_max_heap;
-```
-
 This crate supports Rust version 1.31.0 and later.
 
 ## References
