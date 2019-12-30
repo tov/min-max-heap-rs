@@ -738,7 +738,7 @@ mod tests {
     extern crate rand;
 
     use super::*;
-    use self::rand::Rng;
+    use self::rand::seq::SliceRandom;
 
     #[test]
     fn example() {
@@ -802,7 +802,7 @@ mod tests {
 
     fn random_vec(len: usize) -> Vec<usize> {
         let mut result = (0 .. len).collect::<Vec<_>>();
-        rand::thread_rng().shuffle(&mut result);
+        result.shuffle(&mut rand::thread_rng());
         result
     }
 
