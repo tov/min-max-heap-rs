@@ -1,9 +1,4 @@
-extern crate min_max_heap;
-extern crate rand;
-#[macro_use]
-extern crate quickcheck;
-
-use quickcheck::{Arbitrary, Gen};
+use quickcheck::{Arbitrary, Gen, quickcheck};
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
 
@@ -33,7 +28,7 @@ struct Script<T>(Vec<(Command, T)>);
 
 impl Arbitrary for Command {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        use Command::*;
+        use crate::Command::*;
 
         let choices = [
             (3, Push),
@@ -58,7 +53,7 @@ impl<T: Arbitrary> Arbitrary for Script<T> {
             .collect())
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         Box::new(self.0.shrink().map(Script))
     }
 }
@@ -94,7 +89,7 @@ impl<T: Clone + Ord> Tester<T> {
     }
 
     fn check_command(&mut self, cmd: Command, elt: &T) -> bool {
-        use Command::*;
+        use crate::Command::*;
 
         let e1 = elt.clone();
         let e2 = elt.clone();

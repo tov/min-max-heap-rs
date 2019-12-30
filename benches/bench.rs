@@ -1,6 +1,5 @@
 #![feature(test)]
 
-extern crate min_max_heap;
 extern crate test;
 
 use min_max_heap::MinMaxHeap;

@@ -16,12 +16,6 @@
 //! min-max-heap = "1.2.2"
 //! ```
 //!
-//! And add this to your crate root:
-//!
-//! ```rust
-//! extern crate min_max_heap;
-//! ```
-//!
 //! This crate supports Rust version 1.24.0 and later.
 //!
 //! ## References
@@ -34,8 +28,7 @@
 #![warn(missing_docs)]
 
 #[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde;
+use serde::{Serialize, Deserialize};
 
 use std::iter::FromIterator;
 use std::{fmt, mem, slice, vec};
@@ -807,7 +800,6 @@ mod tests {
     }
 
     fn random_heap(len: usize) -> MinMaxHeap<usize> {
-        use std::iter::FromIterator;
         MinMaxHeap::from_iter(random_vec(len))
     }
 
