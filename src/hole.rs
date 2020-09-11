@@ -10,8 +10,10 @@ pub struct Hole<'a, T: 'a> {
     pos: usize,
 }
 
-#[derive(Copy, Clone, Debug)]
-enum Generation { Same, Parent, Grandparent }
+enum Generation {
+    Child,
+    Grandchild,
+}
 
 impl<'a, T> Hole<'a, T> {
     /// Create a new Hole at index `pos`.
@@ -34,80 +36,24 @@ impl<'a, T> Hole<'a, T> {
         &self.elt
     }
 
-    /// Return a reference to the element at `index`.
-    ///
-    /// Caller must ensure that `index` is a valid index in `data`
-    /// and not equal to `pos`.
     #[inline]
-    unsafe fn get(&self, index: usize) -> &T {
-        debug_assert!(index != self.pos);
-        debug_assert!(index < self.data.len());
-        self.data.get_unchecked(index)
-    }
-
-    /// Move hole to new location
-    ///
-    /// Caller must ensure that `index` is a valid index in `data`
-    /// and not equal to `pos`.
-    #[inline]
-    unsafe fn move_to(&mut self, index: usize) {
-        debug_assert!(index != self.pos);
-        debug_assert!(index < self.data.len());
-        let elt = ptr::read(self.data.get_unchecked(index));
-        ptr::write(self.data.get_unchecked_mut(self.pos), elt);
-        self.pos = index;
-    }
-
-    /// Swaps the contents of the hole with its parent without
-    /// moving the hole.
-    ///
-    /// Caller must ensure that the hole has a parent.
-    #[inline]
-    pub unsafe fn swap_with_parent(&mut self) {
-        debug_assert!(self.pos().has_parent());
-        let parent = self.data.get_unchecked_mut(self.pos().parent());
-        mem::swap(parent, &mut self.elt);
-    }
-
-    /// Caller must ensure that the hole has a parent.
-    #[inline]
-    unsafe fn get_parent_unchecked(&self) -> &T {
-        debug_assert!(self.pos().has_parent());
-        self.get(self.pos().parent())
-    }
-
-    #[inline]
-    pub fn get_parent(&self) -> Option<&T> {
+    pub fn get_parent(&mut self) -> Option<HoleSwap<'a, '_, T>> {
         if self.pos().has_parent() {
             // SAFETY: parent is a valid index and not equal to `pos`
-            Some(unsafe { self.get_parent_unchecked() })
+            Some(unsafe { HoleSwap::new(self, self.pos().parent()) })
         } else {
             None
         }
     }
 
     #[inline]
-    fn get_grandparent(&self) -> Option<&T> {
+    fn get_grandparent(&mut self) -> Option<HoleSwap<'a, '_, T>> {
         if self.pos().has_grandparent() {
             // SAFETY: grandparent is a valid index and not equal to `pos`
-            Some(unsafe { self.get(self.pos().grandparent()) })
+            Some(unsafe { HoleSwap::new(self, self.pos().grandparent()) })
         } else {
             None
         }
-    }
-
-    /// Caller must ensure that the hole has a parent.
-    #[inline]
-    unsafe fn move_to_parent(&mut self) {
-        debug_assert!(self.pos().has_parent());
-        self.move_to(self.pos().parent());
-    }
-
-    /// Caller must ensure that the hole has a grandparent.
-    #[inline]
-    unsafe fn move_to_grandparent(&mut self) {
-        debug_assert!(self.pos().has_grandparent());
-        self.move_to(self.pos().grandparent());
     }
 
     #[inline]
@@ -117,8 +63,8 @@ impl<'a, T> Hole<'a, T> {
 
     /// Caller must ensure that `len <= data.len()`.
     #[inline]
-    unsafe fn index_of_best_child_or_grandchild<F>(&self, len: usize, f: F)
-        -> (usize, Generation)
+    unsafe fn best_child_or_grandchild<F>(&mut self, len: usize, f: F)
+        -> Option<(HoleSwap<'a, '_, T>, Generation)>
     where
         F: Fn(&T, &T) -> bool,
     {
@@ -126,18 +72,16 @@ impl<'a, T> Hole<'a, T> {
         let data = &*self.data;
         let here = self.pos();
 
-        let mut pos     = here;
-        let mut depth   = Generation::Same;
+        let mut best    = None;
         let mut element = self.element();
 
         {
-            let mut check = |i, gen| {
-                if i < len {
+            let mut check = |index, generation| {
+                if index < len {
                     // SAFETY: `i < len <= data.len()`
-                    let candidate = data.get_unchecked(i);
+                    let candidate = data.get_unchecked(index);
                     if f(candidate, element) {
-                        pos = i;
-                        depth = gen;
+                        best = Some((index, generation));
                         element = candidate;
                     }
 
@@ -148,15 +92,20 @@ impl<'a, T> Hole<'a, T> {
             };
 
             let _ =
-                check(here.child1(), Generation::Parent) &&
-                check(here.child2(), Generation::Parent) &&
-                check(here.grandchild1(), Generation::Grandparent) &&
-                check(here.grandchild2(), Generation::Grandparent) &&
-                check(here.grandchild3(), Generation::Grandparent) &&
-                check(here.grandchild4(), Generation::Grandparent);
+                check(here.child1(), Generation::Child) &&
+                check(here.child2(), Generation::Child) &&
+                check(here.grandchild1(), Generation::Grandchild) &&
+                check(here.grandchild2(), Generation::Grandchild) &&
+                check(here.grandchild3(), Generation::Grandchild) &&
+                check(here.grandchild4(), Generation::Grandchild);
         }
 
-        (pos, depth)
+        match best {
+            Some((index, generation)) => {
+                Some((HoleSwap::new(self, index), generation))
+            }
+            None => None,
+        }
     }
 
     /// Caller must ensure that `len <= data.len()`.
@@ -165,26 +114,16 @@ impl<'a, T> Hole<'a, T> {
         F: Fn(&T, &T) -> bool,
     {
         debug_assert!(len <= self.data.len());
-        loop {
-            let (min, gen) = self.index_of_best_child_or_grandchild(len, &f);
-            match gen {
-                Generation::Grandparent => {
-                    self.move_to(min);
-                    // SAFETY: element has a parent
-                    let parent = self.get_parent_unchecked();
-                    if f(parent, self.element()) {
-                        self.swap_with_parent();
+        while let Some((best, generation)) = self.best_child_or_grandchild(len, &f) {
+            best.move_to();
+            match generation {
+                Generation::Grandchild => {
+                    let mut parent = HoleSwap::new(self, self.pos().parent());
+                    if f(parent.other_element(), parent.hole_element()) {
+                        parent.swap_with();
                     }
                 }
-
-                Generation::Parent => {
-                    self.move_to(min);
-                    return;
-                }
-
-                Generation::Same => {
-                    return;
-                }
+                Generation::Child => return,
             }
         }
     }
@@ -194,22 +133,16 @@ impl<'a, T: Ord> Hole<'a, T> {
     pub fn bubble_up(&mut self) {
         if self.on_min_level() {
             match self.get_parent() {
-                Some(parent) if self.element() > parent => {
-                    // SAFETY: element has a parent
-                    unsafe {
-                        self.move_to_parent();
-                    }
+                Some(parent) if parent.hole_element() > parent.other_element() => {
+                    parent.move_to();
                     self.bubble_up_max();
                 }
                 _ => self.bubble_up_min(),
             }
         } else {
             match self.get_parent() {
-                Some(parent) if self.element() < parent => {
-                    // SAFETY: element has a parent
-                    unsafe {
-                        self.move_to_parent();
-                    }
+                Some(parent) if parent.hole_element() < parent.other_element() => {
+                    parent.move_to();
                     self.bubble_up_min();
                 }
                 _ => self.bubble_up_max(),
@@ -219,11 +152,8 @@ impl<'a, T: Ord> Hole<'a, T> {
 
     fn bubble_up_grandparent<F>(&mut self, f: F) where F: Fn(&T, &T) -> bool {
         while let Some(grandparent) = self.get_grandparent() {
-            if f(self.element(), grandparent) {
-                // SAFETY: element has a grandparent
-                unsafe {
-                    self.move_to_grandparent();
-                }
+            if f(grandparent.hole_element(), grandparent.other_element()) {
+                grandparent.move_to();
             } else {
                 return;
             }
@@ -293,6 +223,54 @@ impl<'a, T> Drop for Hole<'a, T> {
     }
 }
 
+/// A hole, along with a potential new position to move it to.
+/// This replaces some unsafe blocks with safety requirements on the constructor.
+pub struct HoleSwap<'a, 'b, T> {
+    hole: &'b mut Hole<'a, T>,
+    index: usize,
+}
+
+impl<'a, 'b, T> HoleSwap<'a, 'b, T> {
+    /// Caller must ensure that `index` is a valid index in `data`
+    /// and not equal to `pos`.
+    unsafe fn new(hole: &'b mut Hole<'a, T>, index: usize) -> Self {
+        debug_assert!(index != hole.pos());
+        debug_assert!(index < hole.data.len());
+        HoleSwap { hole, index }
+    }
+
+    /// The element currently pulled out of the hole.
+    pub fn hole_element(&self) -> &T {
+        self.hole.element()
+    }
+
+    /// The element at the index to potentially move to.
+    pub fn other_element(&self) -> &T {
+        // SAFETY: `index` is a valid index in `data` and not a hole
+        unsafe { self.hole.data.get_unchecked(self.index) }
+    }
+
+    /// Move `other_element()` into the current hole
+    /// and move the hole to where `other_element()` was.
+    /// This invalidates the `HoleSwap`.
+    pub fn move_to(self) {
+        unsafe {
+            // SAFETY: `index` is a valid index in `data` and not a hole
+            let elt = ptr::read(self.other_element());
+            // SAFETY: `pos` is a valid index in `data` and a hole
+            ptr::write(self.hole.data.get_unchecked_mut(self.hole.pos()), elt);
+        }
+        self.hole.pos = self.index;
+    }
+
+    /// Swaps `hole_element()` with `other_element()`, without moving the hole
+    pub fn swap_with(&mut self) {
+        // SAFETY: `index` is a valid index in `data` and not a hole
+        let other_element = unsafe { self.hole.data.get_unchecked_mut(self.index) };
+        mem::swap(other_element, &mut self.hole.elt);
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -305,14 +283,14 @@ mod test {
 
             assert_eq!(1, h.pos());
             assert_eq!(1, *h.element());
-            assert_eq!(2, *h.get(2));
+            assert_eq!(2, h.data[2]);
 
-            h.move_to(4);
+            HoleSwap::new(&mut h, 4).move_to();
 
             assert_eq!(4, h.pos());
             assert_eq!(1, *h.element());
-            assert_eq!(4, *h.get(1));
-            assert_eq!(2, *h.get(2));
+            assert_eq!(4, h.data[1]);
+            assert_eq!(2, h.data[2]);
         }
 
         assert_eq!(vec![0, 4, 2, 3, 1, 5], v);

@@ -798,12 +798,9 @@ impl<'a, T: Ord> Drop for PeekMaxMut<'a, T> {
             // SAFETY: `max_index` is a valid index in `heap`
             let mut hole = unsafe { Hole::new(&mut self.heap.0, self.max_index) };
 
-            if let Some(parent) = hole.get_parent() {
-                if hole.element() < parent {
-                    // SAFETY: element has a parent
-                    unsafe {
-                        hole.swap_with_parent();
-                    }
+            if let Some(mut parent) = hole.get_parent() {
+                if parent.hole_element() < parent.other_element() {
+                   parent.swap_with();
                 }
             }
 
