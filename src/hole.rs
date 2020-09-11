@@ -61,14 +61,12 @@ impl<'a, T> Hole<'a, T> {
         self.pos().is_min_level()
     }
 
-    /// Caller must ensure that `len <= data.len()`.
     #[inline]
-    unsafe fn best_child_or_grandchild<F>(&mut self, len: usize, f: F)
+    fn best_child_or_grandchild<F>(&mut self, f: F)
         -> Option<(HoleSwap<'a, '_, T>, Generation)>
     where
         F: Fn(&T, &T) -> bool,
     {
-        debug_assert!(len <= self.data.len());
         let data = &*self.data;
         let here = self.pos();
 
@@ -77,48 +75,39 @@ impl<'a, T> Hole<'a, T> {
 
         {
             let mut check = |index, generation| {
-                if index < len {
-                    // SAFETY: `i < len <= data.len()`
-                    let candidate = data.get_unchecked(index);
+                data.get(index).map(|candidate| {
                     if f(candidate, element) {
                         best = Some((index, generation));
                         element = candidate;
                     }
-
-                    true
-                } else {
-                    false
-                }
+                })
             };
 
-            let _ =
-                check(here.child1(), Generation::Child) &&
-                check(here.child2(), Generation::Child) &&
-                check(here.grandchild1(), Generation::Grandchild) &&
-                check(here.grandchild2(), Generation::Grandchild) &&
-                check(here.grandchild3(), Generation::Grandchild) &&
-                check(here.grandchild4(), Generation::Grandchild);
+            (|| {
+                check(here.child1(), Generation::Child)?;
+                check(here.child2(), Generation::Child)?;
+                check(here.grandchild1(), Generation::Grandchild)?;
+                check(here.grandchild2(), Generation::Grandchild)?;
+                check(here.grandchild3(), Generation::Grandchild)?;
+                check(here.grandchild4(), Generation::Grandchild)?;
+                Some(())
+            })();
         }
 
-        match best {
-            Some((index, generation)) => {
-                Some((HoleSwap::new(self, index), generation))
-            }
-            None => None,
-        }
+        best.map(move |(index, generation)| {
+            // SAFETY: `index` is a valid index and not equal to `here`
+            let best = unsafe { HoleSwap::new(self, index) };
+            (best, generation)
+        })
     }
 
-    /// Caller must ensure that `len <= data.len()`.
-    unsafe fn trickle_down_best_len<F>(&mut self, len: usize, f: F)
-    where
-        F: Fn(&T, &T) -> bool,
-    {
-        debug_assert!(len <= self.data.len());
-        while let Some((best, generation)) = self.best_child_or_grandchild(len, &f) {
+    fn trickle_down_best<F>(&mut self, f: F) where F: Fn(&T, &T) -> bool {
+        while let Some((best, generation)) = self.best_child_or_grandchild(&f) {
             best.move_to();
             match generation {
                 Generation::Grandchild => {
-                    let mut parent = HoleSwap::new(self, self.pos().parent());
+                    // SAFETY: `pos` has a parent since it has a grandparent
+                    let mut parent = unsafe { HoleSwap::new(self, self.pos().parent()) };
                     if f(parent.other_element(), parent.hole_element()) {
                         parent.swap_with();
                     }
@@ -169,46 +158,19 @@ impl<'a, T: Ord> Hole<'a, T> {
     }
 
     pub fn trickle_down(&mut self) {
-        // SAFETY: `data.len() <= data.len()`
-        unsafe {
-            self.trickle_down_len(self.data.len());
+        if self.on_min_level() {
+            self.trickle_down_min();
+        } else {
+            self.trickle_down_max();
         }
     }
 
     pub fn trickle_down_min(&mut self) {
-        // SAFETY: `data.len() <= data.len()`
-        unsafe {
-            self.trickle_down_min_len(self.data.len());
-        }
+        self.trickle_down_best(PartialOrd::lt);
     }
 
     pub fn trickle_down_max(&mut self) {
-        // SAFETY: `data.len() <= data.len()`
-        unsafe {
-            self.trickle_down_max_len(self.data.len());
-        }
-    }
-
-    /// Caller must ensure that `len <= data.len()`.
-    pub unsafe fn trickle_down_len(&mut self, len: usize) {
-        debug_assert!(len <= self.data.len());
-        if self.on_min_level() {
-            self.trickle_down_min_len(len);
-        } else {
-            self.trickle_down_max_len(len);
-        }
-    }
-
-    /// Caller must ensure that `len <= data.len()`.
-    pub unsafe fn trickle_down_min_len(&mut self, len: usize) {
-        debug_assert!(len <= self.data.len());
-        self.trickle_down_best_len(len, PartialOrd::lt);
-    }
-
-    /// Caller must ensure that `len <= data.len()`.
-    pub unsafe fn trickle_down_max_len(&mut self, len: usize) {
-        debug_assert!(len <= self.data.len());
-        self.trickle_down_best_len(len, PartialOrd::gt);
+        self.trickle_down_best(PartialOrd::gt);
     }
 }
 
