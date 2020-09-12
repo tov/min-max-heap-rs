@@ -190,8 +190,16 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Pushes an element, then pops the minimum element.
     ///
-    /// Unlike a push followed by a pop, this combined operation will
-    /// not allocate.
+    /// Except for avoiding allocation, `push_pop_min` is equivalent to
+    /// [push](struct.MinMaxHeap.html#method.push.html) followed by
+    /// [pop_min](struct.MinMaxHeap.html#method.pop_min.html).
+    ///
+    /// This implies that if the element you give it is smaller than anything already in the heap,
+    /// `push_pop_min` gives you back the element you just gave it. If the heap is empty, then the
+    /// correct behavior for `push_pop_min` is to return its argument and leave the heap empty,
+    /// because that is what push followed by pop_min would do.  If you want to always insert the
+    /// element, even if it would be the new minimum you should use
+    /// [replace_min](struct.MinMaxHeap.html#method.replace_min.html) instead.
     ///
     /// *O*(log *n*).
     pub fn push_pop_min(&mut self, mut element: T) -> T {
@@ -207,8 +215,16 @@ impl<T: Ord> MinMaxHeap<T> {
     /// Pushes an element, then pops the maximum element in an optimized
     /// fashion.
     ///
-    /// Unlike a push followed by a pop, this combined operation will
-    /// not allocate.
+    /// Except for avoiding allocation, `push_pop_max` is equivalent to
+    /// [push](struct.MinMaxHeap.html#method.push.html) followed by
+    /// [pop_max](struct.MinMaxHeap.html#method.pop_max.html).
+    ///
+    /// This implies that if the element you give it is bigger than anything already in the heap,
+    /// `push_pop_max` gives you back the element you just gave it. If the heap is empty, then the
+    /// correct behavior for `push_pop_max` is to return its argument and leave the heap empty,
+    /// because that is what push followed by pop_max would do.  If you want to always insert the
+    /// element, even if it would be the new maximum, you should use
+    /// [replace_max](struct.MinMaxHeap.html#method.replace_max.html) instead.
     ///
     /// *O*(log *n*).
     pub fn push_pop_max(&mut self, mut element: T) -> T {
@@ -229,6 +245,17 @@ impl<T: Ord> MinMaxHeap<T> {
     /// Pops the minimum, then pushes an element in an optimized
     /// fashion.
     ///
+    /// Except for avoiding allocation, `replace_min` is equivalent to
+    /// [pop_min](struct.MinMaxHeap.html#method.pop_min.html) followed by
+    /// [push](struct.MinMaxHeap.html#method.push.html).
+    ///
+    /// This implies that `replace_min` will always leaves the element you give it in the heap and
+    /// gives you back the old minimum element. If the heap is empty, then the correct behavior for
+    /// `replace_min` is to push the element and returns None, which is what `pop_min` followed by
+    /// `push` would do. If you want to always insert the element, even if it would be the new
+    /// minimum, you should use [push_pop_min](struct.MinMaxHeap.html#method.push_pop_min.html)
+    /// instead.
+    ///
     /// *O*(log *n*).
     pub fn replace_min(&mut self, mut element: T) -> Option<T> {
         if self.is_empty() {
@@ -243,6 +270,17 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Pops the maximum, then pushes an element in an optimized
     /// fashion.
+    ///
+    /// Except for avoiding allocation, `replace_max` is equivalent to
+    /// [pop_max](struct.MinMaxHeap.html#method.pop_max.html) followed by
+    /// [push](struct.MinMaxHeap.html#method.push.html).
+    ///
+    /// This implies that `replace_max` will always leaves the element you give it in the heap and
+    /// gives you back the old maximum element. If the heap is empty, then the correct behavior for
+    /// `replace_max` is to push the element and returns None, which is what `pop_max` followed by
+    /// `push` would do. If you want to always insert the element, even if it would be the new
+    /// maximum, you should use [push_pop_max](struct.MinMaxHeap.html#method.push_pop_max.html)
+    /// instead.
     ///
     /// *O*(log *n*).
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
