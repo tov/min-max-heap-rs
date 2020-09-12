@@ -190,8 +190,25 @@ impl<T: Ord> MinMaxHeap<T> {
 
     /// Pushes an element, then pops the minimum element.
     ///
-    /// Unlike a push followed by a pop, this combined operation will
-    /// not allocate.
+    /// Calling `push_pop_min` is equivalent to calling [`push`]
+    /// followed by [`pop_min`], except that it avoids allocation.
+    ///
+    /// This means that if the element you give it is smaller than
+    /// anything already in the heap then `push_pop_min` gives you back
+    /// that same element. If the heap is empty then `push_pop_min`
+    /// returns its argument and leaves the heap empty.  In order to
+    /// always insert the element, even if it would be the new minimum,
+    /// see [`replace_min`], which equivalent to [`pop_min`] followed by
+    /// [`push`].
+    ///
+    /// [`push`]:
+    ///     <struct.MinMaxHeap.html#method.push>
+    ///
+    /// [`pop_min`]:
+    ///     <struct.MinMaxHeap.html#method.pop_min>
+    ///
+    /// [`replace_min`]:
+    ///     <struct.MinMaxHeap.html#method.replace_min>
     ///
     /// *O*(log *n*).
     pub fn push_pop_min(&mut self, mut element: T) -> T {
@@ -204,11 +221,27 @@ impl<T: Ord> MinMaxHeap<T> {
         element
     }
 
-    /// Pushes an element, then pops the maximum element in an optimized
-    /// fashion.
+    /// Pushes an element, then pops the maximum element.
     ///
-    /// Unlike a push followed by a pop, this combined operation will
-    /// not allocate.
+    /// Calling `push_pop_max` is equivalent to calling [`push`]
+    /// followed by [`pop_max`], except that it avoids allocation.
+    ///
+    /// This means that if the element you give it is greater than
+    /// anything already in the heap then `push_pop_max` gives you back
+    /// that same element. If the heap is empty then `push_pop_max`
+    /// returns its argument and leaves the heap empty.  In order to
+    /// always insert the element, even if it would be the new maximum,
+    /// see [`replace_max`], which equivalent to [`pop_max`] followed by
+    /// [`push`].
+    ///
+    /// [`push`]:
+    ///     <struct.MinMaxHeap.html#method.push>
+    ///
+    /// [`pop_max`]:
+    ///     <struct.MinMaxHeap.html#method.pop_max>
+    ///
+    /// [`replace_max`]:
+    ///     <struct.MinMaxHeap.html#method.replace_max>
     ///
     /// *O*(log *n*).
     pub fn push_pop_max(&mut self, mut element: T) -> T {
@@ -226,23 +259,60 @@ impl<T: Ord> MinMaxHeap<T> {
         } else { element }
     }
 
-    /// Pops the minimum, then pushes an element in an optimized
-    /// fashion.
+    /// Pops the minimum element and pushes a new element, in an
+    /// optimized fashion.
+    ///
+    /// Except for avoiding allocation, calling `replace_min` is
+    /// equivalent to calling [`pop_min`] followed by [`push`].
+    ///
+    /// This means that `replace_min` will always leaves the element you
+    /// give it in the heap and gives you back the *old* minimum
+    /// element; it never returns the element you just gave it. If the
+    /// heap is empty there is no old minimum, so `replace_min` pushes
+    /// the element and returns `None`. If you want to get back the
+    /// smallest element *including* the one you are about to push, see
+    /// [`push_pop_min`].
+    ///
+    /// [`push`]:
+    ///     <struct.MinMaxHeap.html#method.push>
+    ///
+    /// [`pop_min`]:
+    ///     <struct.MinMaxHeap.html#method.pop_min>
+    ///
+    /// [`push_pop_min`]:
+    ///     <struct.MinMaxHeap.html#method.push_pop_min>
     ///
     /// *O*(log *n*).
-    pub fn replace_min(&mut self, mut element: T) -> Option<T> {
-        if self.is_empty() {
-            self.push(element);
-            return None;
-        }
+    pub fn replace_min(&mut self, mut element: T) -> Option<T> { if
+        self.is_empty() { self.push(element); return None; }
 
         mem::swap(&mut element, &mut self.0[0]);
         self.trickle_down_min(0);
         Some(element)
     }
 
-    /// Pops the maximum, then pushes an element in an optimized
-    /// fashion.
+    /// Pops the maximum element and pushes a new element, in an
+    /// optimized fashion.
+    ///
+    /// Except for avoiding allocation, calling `replace_max` is
+    /// equivalent to calling [`pop_max`] followed by [`push`].
+    ///
+    /// This means that `replace_max` will always leaves the element you
+    /// give it in the heap and gives you back the *old* maximum
+    /// element; it never returns the element you just gave it. If the
+    /// heap is empty there is no old maximum, so `replace_max` pushes
+    /// the element and returns `None`. If you want to get back the
+    /// largest element *including* the one you are about to push, see
+    /// [`push_pop_max`].
+    ///
+    /// [`push`]:
+    ///     <struct.MinMaxHeap.html#method.push>
+    ///
+    /// [`pop_max`]:
+    ///     <struct.MinMaxHeap.html#method.pop_max>
+    ///
+    /// [`push_pop_max`]:
+    ///     <struct.MinMaxHeap.html#method.push_pop_max>
     ///
     /// *O*(log *n*).
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
