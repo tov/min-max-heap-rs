@@ -202,13 +202,13 @@ impl<T: Ord> MinMaxHeap<T> {
     /// [`push`].
     ///
     /// [`push`]:
-    ///     <struct.MinMaxHeap.html#method.push.html>
+    ///     <struct.MinMaxHeap.html#method.push>
     ///
     /// [`pop_min`]:
-    ///     <struct.MinMaxHeap.html#method.pop_min.html>
+    ///     <struct.MinMaxHeap.html#method.pop_min>
     ///
     /// [`replace_min`]:
-    ///     <struct.MinMaxHeap.html#method.replace_min.html>
+    ///     <struct.MinMaxHeap.html#method.replace_min>
     ///
     /// *O*(log *n*).
     pub fn push_pop_min(&mut self, mut element: T) -> T {
@@ -235,13 +235,13 @@ impl<T: Ord> MinMaxHeap<T> {
     /// [`push`].
     ///
     /// [`push`]:
-    ///     <struct.MinMaxHeap.html#method.push.html>
+    ///     <struct.MinMaxHeap.html#method.push>
     ///
     /// [`pop_max`]:
-    ///     <struct.MinMaxHeap.html#method.pop_max.html>
+    ///     <struct.MinMaxHeap.html#method.pop_max>
     ///
     /// [`replace_max`]:
-    ///     <struct.MinMaxHeap.html#method.replace_max.html>
+    ///     <struct.MinMaxHeap.html#method.replace_max>
     ///
     /// *O*(log *n*).
     pub fn push_pop_max(&mut self, mut element: T) -> T {
@@ -274,13 +274,13 @@ impl<T: Ord> MinMaxHeap<T> {
     /// [`push_pop_min`].
     ///
     /// [`push`]:
-    ///     <struct.MinMaxHeap.html#method.push.html>
+    ///     <struct.MinMaxHeap.html#method.push>
     ///
     /// [`pop_min`]:
-    ///     <struct.MinMaxHeap.html#method.pop_min.html>
+    ///     <struct.MinMaxHeap.html#method.pop_min>
     ///
     /// [`push_pop_min`]:
-    ///     <struct.MinMaxHeap.html#method.push_pop_min.html>
+    ///     <struct.MinMaxHeap.html#method.push_pop_min>
     ///
     /// *O*(log *n*).
     pub fn replace_min(&mut self, mut element: T) -> Option<T> { if
@@ -306,13 +306,13 @@ impl<T: Ord> MinMaxHeap<T> {
     /// [`push_pop_max`].
     ///
     /// [`push`]:
-    ///     <struct.MinMaxHeap.html#method.push.html>
+    ///     <struct.MinMaxHeap.html#method.push>
     ///
     /// [`pop_max`]:
-    ///     <struct.MinMaxHeap.html#method.pop_max.html>
+    ///     <struct.MinMaxHeap.html#method.pop_max>
     ///
     /// [`push_pop_max`]:
-    ///     <struct.MinMaxHeap.html#method.push_pop_max.html>
+    ///     <struct.MinMaxHeap.html#method.push_pop_max>
     ///
     /// *O*(log *n*).
     pub fn replace_max(&mut self, mut element: T) -> Option<T> {
