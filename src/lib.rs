@@ -905,6 +905,31 @@ mod tests {
     }
 
     #[test]
+    fn replace_min() {
+        let mut h = MinMaxHeap::from(vec![1, 2]);
+        assert_eq!(Some(1), h.replace_min(0));
+        assert_eq!(Some(&0), h.peek_min());
+        assert_eq!(Some(&2), h.peek_max());
+
+        assert_eq!(Some(0), h.replace_min(3));
+        assert_eq!(Some(&2), h.peek_min());
+        assert_eq!(Some(&3), h.peek_max());
+    }
+
+    #[test]
+    fn replace_min_edge_cases() {
+        let mut empty_heap = MinMaxHeap::new();
+        assert_eq!(None, empty_heap.replace_min(1));
+        assert_eq!(Some(1), empty_heap.pop_min());
+        assert_eq!(None, empty_heap.pop_min());
+
+        let mut one_element_heap = MinMaxHeap::from(vec![2]);
+        assert_eq!(Some(2), one_element_heap.replace_min(1));
+        assert_eq!(Some(1), one_element_heap.pop_min());
+        assert_eq!(None, one_element_heap.pop_min());
+    }
+
+    #[test]
     fn replace_max() {
         let mut h = MinMaxHeap::from(vec![1, 2]);
         assert_eq!(Some(2), h.replace_max(3));
@@ -914,6 +939,19 @@ mod tests {
         assert_eq!(Some(3), h.replace_max(0));
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
+    }
+
+    #[test]
+    fn replace_max_edge_cases() {
+        let mut empty_heap = MinMaxHeap::new();
+        assert_eq!(None, empty_heap.replace_max(1));
+        assert_eq!(Some(1), empty_heap.pop_max());
+        assert_eq!(None, empty_heap.pop_max());
+
+        let mut one_element_heap = MinMaxHeap::from(vec![1]);
+        assert_eq!(Some(1), one_element_heap.replace_max(2));
+        assert_eq!(Some(2), one_element_heap.pop_max());
+        assert_eq!(None, one_element_heap.pop_max());
     }
 
     #[test]
