@@ -91,18 +91,17 @@ impl<T: Ord> MinMaxHeap<T> {
     pub fn push(&mut self, element: T) {
         let pos = self.len();
         self.0.push(element);
-        self.bubble_up(pos);
+        // SAFETY: `pos` is the index of the new element
+        unsafe {
+            self.bubble_up(pos);
+        }
     }
 
     /// Gets a reference to the minimum element, if any.
     ///
     /// *O*(1).
     pub fn peek_min(&self) -> Option<&T> {
-        if self.is_empty() {
-            None
-        } else {
-            Some(&self.0[0])
-        }
+        self.0.first()
     }
 
     /// Returns a mutable reference to the minimum element, if any. Once this reference is dropped,
@@ -127,7 +126,8 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// *O*(1).
     pub fn peek_max(&self) -> Option<&T> {
-        self.find_max().map(|i| &self.0[i])
+        // SAFETY: `i` is a valid index in `self.0`
+        self.find_max().map(|i| unsafe { self.0.get_unchecked(i) })
     }
 
     /// Returns a mutable reference to the maximum element, if any. Once this reference is dropped,
@@ -145,17 +145,17 @@ impl<T: Ord> MinMaxHeap<T> {
         })
     }
 
-    fn find_max_len(&self, len: usize) -> Option<usize> {
-        match len {
+    fn find_max_slice(slice: &[T]) -> Option<usize> {
+        match slice.len() {
             0 => None,
             1 => Some(0),
             2 => Some(1),
-            _ => if self.0[1] > self.0[2] { Some(1) } else { Some(2) }
+            _ => if slice[1] > slice[2] { Some(1) } else { Some(2) },
         }
     }
 
     fn find_max(&self) -> Option<usize> {
-        self.find_max_len(self.len())
+        Self::find_max_slice(&self.0)
     }
 
     /// Removes the minimum element, if any.
@@ -163,9 +163,12 @@ impl<T: Ord> MinMaxHeap<T> {
     /// *O*(log *n*).
     pub fn pop_min(&mut self) -> Option<T> {
         self.0.pop().map(|mut item| {
-            if !self.is_empty() {
-                mem::swap(&mut item, &mut self.0[0]);
-                self.trickle_down_min(0);
+            if let Some(min) = self.0.first_mut() {
+                mem::swap(&mut item, min);
+                // SAFETY: `self.0` is not empty
+                unsafe {
+                    self.trickle_down_min(0);
+                }
             }
 
             item
@@ -179,9 +182,12 @@ impl<T: Ord> MinMaxHeap<T> {
         self.find_max().map(|max| {
             let mut item = self.0.pop().unwrap();
 
-            if max < self.len() {
-                mem::swap(&mut item, &mut self.0[max]);
-                self.trickle_down_max(max);
+            if let Some(max_element) = self.0.get_mut(max) {
+                mem::swap(&mut item, max_element);
+                // SAFETY: `max` is a valid index in `self.0`
+                unsafe {
+                    self.trickle_down_max(max);
+                }
             }
 
             item
@@ -217,7 +223,10 @@ impl<T: Ord> MinMaxHeap<T> {
         if element < self.0[0] { return element; }
 
         mem::swap(&mut element, &mut self.0[0]);
-        self.trickle_down_min(0);
+        // SAFETY: `self.0` is not empty
+        unsafe {
+            self.trickle_down_min(0);
+        }
         element
     }
 
@@ -254,7 +263,10 @@ impl<T: Ord> MinMaxHeap<T> {
                 self.0.swap(0, i);
             }
 
-            self.trickle_down_max(i);
+            // SAFETY: `i` is a valid index in `self.0`
+            unsafe {
+                self.trickle_down_max(i);
+            }
             element
         } else { element }
     }
@@ -287,7 +299,10 @@ impl<T: Ord> MinMaxHeap<T> {
         self.is_empty() { self.push(element); return None; }
 
         mem::swap(&mut element, &mut self.0[0]);
-        self.trickle_down_min(0);
+        // SAFETY: `self.0` is not empty
+        unsafe {
+            self.trickle_down_min(0);
+        }
         Some(element)
     }
 
@@ -323,7 +338,10 @@ impl<T: Ord> MinMaxHeap<T> {
                 self.0.swap(0, i);
             }
 
-            self.trickle_down_max(i);
+            // SAFETY: `i` is a valid index in `self.0`
+            unsafe {
+                self.trickle_down_max(i);
+            }
             Some(element)
         } else {
             self.push(element);
@@ -336,11 +354,18 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// *O*(*n* log *n*).
     pub fn into_vec_asc(mut self) -> Vec<T> {
-        let mut end = self.len();
-        while let Some(max) = self.find_max_len(end) {
-            end -= 1;
-            self.0.swap(max, end);
-            self.trickle_down_len(max, end);
+        let mut elements = &mut self.0[..];
+        while elements.len() > 1 {
+            let max = Self::find_max_slice(elements).unwrap();
+            let (last, elements_rest) = elements.split_last_mut().unwrap();
+            elements = elements_rest;
+            if let Some(max_element) = elements.get_mut(max) {
+                mem::swap(max_element, last);
+                // SAFETY: `max < elements.len()`
+                unsafe {
+                    Self::trickle_down_slice(elements, max);
+                }
+            }
         }
         self.into_vec()
     }
@@ -350,50 +375,65 @@ impl<T: Ord> MinMaxHeap<T> {
     ///
     /// *O*(*n* log *n*).
     pub fn into_vec_desc(mut self) -> Vec<T> {
-        let mut end = self.len();
-        while end > 1 {
-            end -= 1;
-            self.0.swap(0, end);
-            self.trickle_down_min_len(0, end);
+        let mut elements = &mut self.0[..];
+        while elements.len() > 1 {
+            let (last, elements_rest) = elements.split_last_mut().unwrap();
+            elements = elements_rest;
+            mem::swap(&mut elements[0], last);
+            // SAFETY: `elements` is not empty
+            unsafe {
+                Self::trickle_down_min_slice(elements, 0);
+            }
         }
         self.into_vec()
     }
 
+    /// Caller must ensure that `pos` is a valid index in `self.0`.
     #[inline]
-    fn trickle_down_min(&mut self, pos: usize) {
-        Hole::new(&mut self.0, pos).trickle_down_min();
+    unsafe fn trickle_down_min(&mut self, pos: usize) {
+        Self::trickle_down_min_slice(&mut self.0, pos);
     }
 
+    /// Caller must ensure that `pos` is a valid index in `self.0`.
     #[inline]
-    fn trickle_down_max(&mut self, pos: usize) {
+    unsafe fn trickle_down_max(&mut self, pos: usize) {
+        debug_assert!(pos < self.len());
         Hole::new(&mut self.0, pos).trickle_down_max();
     }
 
+    /// Caller must ensure that `pos` is a valid index in `self.0`.
     #[inline]
-    fn trickle_down(&mut self, pos: usize) {
-        Hole::new(&mut self.0, pos).trickle_down();
+    unsafe fn trickle_down(&mut self, pos: usize) {
+        Self::trickle_down_slice(&mut self.0, pos);
     }
 
+    /// Caller must ensure that `pos` is a valid index in `slice`.
     #[inline]
-    fn trickle_down_min_len(&mut self, pos: usize, len: usize) {
-        Hole::new(&mut self.0, pos).trickle_down_min_len(len);
+    unsafe fn trickle_down_min_slice(slice: &mut [T], pos: usize) {
+        debug_assert!(pos < slice.len());
+        Hole::new(slice, pos).trickle_down_min();
     }
 
+    /// Caller must ensure that `pos` is a valid index in `slice`.
     #[inline]
-    fn trickle_down_len(&mut self, pos: usize, len: usize) {
-        Hole::new(&mut self.0, pos).trickle_down_len(len);
+    unsafe fn trickle_down_slice(slice: &mut [T], pos: usize) {
+        debug_assert!(pos < slice.len());
+        Hole::new(slice, pos).trickle_down();
     }
 
+    /// Caller must ensure that `pos` is a valid index in `self.0`.
     #[inline]
-    fn bubble_up(&mut self, pos: usize) {
+    unsafe fn bubble_up(&mut self, pos: usize) {
+        debug_assert!(pos < self.len());
         Hole::new(&mut self.0, pos).bubble_up();
     }
 
     fn rebuild(&mut self) {
-        let mut n = self.len() / 2;
-        while n > 0 {
-            n -= 1;
-            self.trickle_down(n);
+        for n in (0..(self.len() / 2)).rev() {
+            // SAFETY: `n < self.len()`
+            unsafe {
+                self.trickle_down(n);
+            }
         }
     }
 }
@@ -703,7 +743,10 @@ impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
 impl<'a, T: Ord> Drop for PeekMinMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
-            self.heap.trickle_down_min(0);
+            // SAFETY: `heap` is not empty
+            unsafe {
+                self.heap.trickle_down_min(0);
+            }
         }
     }
 }
@@ -759,10 +802,18 @@ impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
 impl<'a, T: Ord> Drop for PeekMaxMut<'a, T> {
     fn drop(&mut self) {
         if !self.removed {
-            let mut hole = Hole::new(&mut self.heap.0, self.max_index);
+            // SAFETY: `max_index` is a valid index in `heap`
+            let mut hole = unsafe {
+                Hole::new(&mut self.heap.0, self.max_index)
+            };
 
-            if hole.element() < hole.get_parent() {
-                hole.swap_with_parent();
+            match hole.get_parent() {
+                Some(mut parent)
+                    if parent.hole_element() < parent.other_element() =>
+                {
+                   parent.swap_with();
+                }
+                _ => {},
             }
 
             hole.trickle_down_max();
