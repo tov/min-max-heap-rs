@@ -761,7 +761,7 @@ impl<'a, T: Ord> Drop for PeekMaxMut<'a, T> {
         if !self.removed {
             let mut hole = Hole::new(&mut self.heap.0, self.max_index);
 
-            if hole.element() < hole.get_parent() {
+            if hole.has_parent() && hole.element() < hole.get_parent() {
                 hole.swap_with_parent();
             }
 
@@ -941,6 +941,10 @@ mod tests {
         assert_eq!(1, h.peek_max_mut().unwrap().pop());
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&0), h.peek_max());
+
+        *h.peek_max_mut().unwrap() = 1;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&1), h.peek_max());
     }
 
     #[test]
