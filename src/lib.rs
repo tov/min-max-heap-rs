@@ -1040,6 +1040,10 @@ mod tests {
         assert_eq!(1, h.peek_max_mut().unwrap().pop());
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&0), h.peek_max());
+
+        *h.peek_max_mut().unwrap() = 1;
+        assert_eq!(Some(&1), h.peek_min());
+        assert_eq!(Some(&1), h.peek_max());
     }
 
     #[test]
