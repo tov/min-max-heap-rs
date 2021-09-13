@@ -714,7 +714,7 @@ impl<'a, T: Ord + Clone + 'a> Extend<&'a T> for MinMaxHeap<T> {
 ///
 /// [`peek_min_mut`]: struct.MinMaxHeap.html#method.peek_min_mut
 /// [`MinMaxHeap`]: struct.MinMaxHeap.html
-pub struct PeekMinMut<'a, T: 'a + Ord> {
+pub struct PeekMinMut<'a, T: Ord> {
     heap: &'a mut MinMaxHeap<T>,
     sift: bool,
 }
@@ -722,7 +722,7 @@ pub struct PeekMinMut<'a, T: 'a + Ord> {
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMinMut<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMinMut")
-         .field(&self.heap.0[0])
+         .field(&**self)
          .finish()
     }
 }
@@ -773,7 +773,7 @@ impl<'a, T: Ord> PeekMinMut<'a, T> {
 ///
 /// [`peek_max_mut`]: struct.MinMaxHeap.html#method.peek_max_mut
 /// [`MinMaxHeap`]: struct.MinMaxHeap.html
-pub struct PeekMaxMut<'a, T: 'a + Ord> {
+pub struct PeekMaxMut<'a, T: Ord> {
     heap: &'a mut MinMaxHeap<T>,
     max_index: usize,
     sift: bool,
@@ -782,7 +782,7 @@ pub struct PeekMaxMut<'a, T: 'a + Ord> {
 impl<T: Ord + fmt::Debug> fmt::Debug for PeekMaxMut<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("PeekMaxMut")
-         .field(&self.heap.0[self.max_index])
+         .field(&**self)
          .finish()
     }
 }
@@ -1034,5 +1034,12 @@ mod tests {
         assert_eq!(2, h.push_pop_max(0));
         assert_eq!(Some(&0), h.peek_min());
         assert_eq!(Some(&1), h.peek_max());
+    }
+
+    #[test]
+    fn peek_mut_format() {
+        let mut h = MinMaxHeap::from(vec![1, 2, 3]);
+        assert_eq!("PeekMinMut(1)", format!("{:?}", h.peek_min_mut().unwrap()));
+        assert_eq!("PeekMaxMut(3)", format!("{:?}", h.peek_max_mut().unwrap()));
     }
 }
