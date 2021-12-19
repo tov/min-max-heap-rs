@@ -12,6 +12,8 @@ pub trait HeapIndex {
 
     fn has_parent(self) -> bool;
     fn has_grandparent(self) -> bool;
+
+    #[allow(clippy::wrong_self_convention)]
     fn is_min_level(self) -> bool;
 }
 

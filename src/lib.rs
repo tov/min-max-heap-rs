@@ -16,7 +16,7 @@
 //! min-max-heap = "1.3.0"
 //! ```
 //!
-//! This crate supports Rust version 1.32.0 and later.
+//! This crate supports Rust version 1.41.1 and later.
 //!
 //! ## References
 //!
@@ -255,8 +255,9 @@ impl<T: Ord> MinMaxHeap<T> {
             }
 
             self.trickle_down_max(i);
-            element
-        } else { element }
+        }
+
+        element
     }
 
     /// Pops the minimum element and pushes a new element, in an
