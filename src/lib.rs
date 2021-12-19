@@ -255,8 +255,9 @@ impl<T: Ord> MinMaxHeap<T> {
             }
 
             self.trickle_down_max(i);
-            element
-        } else { element }
+        }
+
+        element
     }
 
     /// Pops the minimum element and pushes a new element, in an
