@@ -16,7 +16,7 @@
 //! min-max-heap = "1.3.0"
 //! ```
 //!
-//! This crate supports Rust version 1.32.0 and later.
+//! This crate supports Rust version 1.41.1 and later.
 //!
 //! ## References
 //!
@@ -478,7 +478,7 @@ impl<T> MinMaxHeap<T> {
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// descending (max-first) order.
     ///
-    /// *O*(1) on creation, and *O*(log *n*) for each `next()` operation.
+    /// *<<1) on creation, and *O*(log *n*) for each `next()` operation.
     pub fn drain_desc(&mut self) -> DrainDesc<T> {
         DrainDesc(self)
     }
