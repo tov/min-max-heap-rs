@@ -106,7 +106,11 @@ impl<T: Clone + Ord> Tester<T> {
         let f  = &mut self.fake;
 
         match cmd {
-            Push       => r.push(e1) == f.push(e2),
+            Push       => {
+                r.push(e1);
+                f.push(e2);
+                true
+            }
             PopMin     => r.pop_min() == f.pop_min(),
             PopMax     => r.pop_max() == f.pop_max(),
             PushPopMin => r.push_pop_min(e1) == f.push_pop_min(e2),
