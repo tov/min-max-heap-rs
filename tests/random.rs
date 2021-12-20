@@ -28,6 +28,18 @@ impl Arbitrary for Command {
     fn arbitrary(g: &mut Gen) -> Self {
         g.choose(COMMAND_FREQS).copied().unwrap_or(Command::Push)
     }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
+        use Command::*;
+
+        let v = match self {
+            PushPopMin | ReplaceMin => vec![Push, PopMin],
+            PushPopMax | ReplaceMax => vec![Push, PopMax],
+            _ => vec![],
+        };
+
+        Box::new(v.into_iter())
+    }
 }
 
 const COMMAND_FREQS: &[Command] = {
