@@ -1,43 +1,76 @@
-#[derive(Debug, PartialEq, Eq)]
-pub struct FakeHeap<T>(Vec<T>);
+use std::collections::btree_map::BTreeMap;
 
-impl<T: Ord> FakeHeap<T> {
+#[derive(Debug, Eq, PartialEq)]
+pub struct FakeHeap<T> {
+    tree: BTreeMap<T, usize>,
+    len: usize,
+}
+
+impl<T: Clone + Ord> FakeHeap<T> {
     pub fn new() -> Self {
-        FakeHeap(Vec::new())
+        Self {
+            tree: BTreeMap::new(),
+            len: 0,
+        }
     }
 
-    fn find_min(&self) -> Option<usize> {
-        self.0.iter().enumerate().min_by_key(|p| p.1).map(|p| p.0)
+    pub fn len(&self) -> usize {
+        self.len
     }
 
-    fn find_max(&self) -> Option<usize> {
-        self.0.iter().enumerate().max_by_key(|p| p.1).map(|p| p.0)
+    #[allow(dead_code)]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 
     pub fn push(&mut self, element: T) {
-        self.0.push(element);
+        if let Some(found) = self.tree.get_mut(&element) {
+            *found += 1;
+        } else {
+            self.tree.insert(element, 0);
+        }
+
+        self.len += 1;
     }
 
     pub fn peek_min(&self) -> Option<&T> {
-        self.find_min().map(|i| &self.0[i])
+        self.tree.range(..).next().map(|p| p.0)
     }
 
     pub fn peek_max(&self) -> Option<&T> {
-        self.find_max().map(|i| &self.0[i])
-    }
-
-    fn pop_index(&mut self, i: usize) -> T {
-        let last = self.0.len() - 1;
-        self.0.swap(i, last);
-        self.0.pop().unwrap()
+        self.tree.range(..).next_back().map(|p| p.0)
     }
 
     pub fn pop_min(&mut self) -> Option<T> {
-        self.find_min().map(|i| self.pop_index(i))
+        if let Some((elem, count)) = self.tree.range_mut(..).next() {
+            let elem = elem.clone();
+            if let Some(pred) = count.checked_sub(1) {
+                *count = pred;
+            } else {
+                self.tree.remove(&elem); 
+            }
+
+            self.len -= 1;
+            Some(elem)
+        } else {
+            None
+        }
     }
 
     pub fn pop_max(&mut self) -> Option<T> {
-        self.find_max().map(|i| self.pop_index(i))
+        if let Some((elem, count)) = self.tree.range_mut(..).next_back() {
+            let elem = elem.clone();
+            if let Some(pred) = count.checked_sub(1) {
+                *count = pred;
+            } else {
+                self.tree.remove(&elem); 
+            }
+
+            self.len -= 1;
+            Some(elem)
+        } else {
+            None
+        }
     }
 
     pub fn push_pop_min(&mut self, element: T) -> T {
@@ -62,4 +95,3 @@ impl<T: Ord> FakeHeap<T> {
         result
     }
 }
-
