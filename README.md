@@ -53,7 +53,7 @@ This crate supports Rust version 1.46 and later.
   <http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf>
 
 [`BinaryHeap`]:
-  std::collections::binary_heap::BinaryHeap
+  <https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html>
 
 [binary_heap.rs]:
   <https://doc.rust-lang.org/stable/src/alloc/collections/binary_heap.rs.html>
