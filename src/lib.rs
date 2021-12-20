@@ -584,9 +584,7 @@ impl<'a, T> ExactSizeIterator for Drain<'a, T> { }
 impl<T: Ord> FromIterator<T> for MinMaxHeap<T> {
     fn from_iter<I>(iter: I) -> Self
             where I: IntoIterator<Item = T> {
-        let mut result = MinMaxHeap::new();
-        result.extend(iter);
-        result
+        MinMaxHeap::from(iter.into_iter().collect::<Vec<T>>())
     }
 }
 
