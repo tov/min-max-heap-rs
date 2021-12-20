@@ -375,6 +375,34 @@ impl<T: Ord> MinMaxHeap<T> {
         self.into_vec()
     }
 
+    /// Retains only the elements specified by the predicate.
+    ///
+    /// In other words, remove all elements `e` such that `f(&e)` returns
+    /// `false`. The elements are visited in unsorted (and unspecified) order.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use min_max_heap::MinMaxHeap;
+    ///
+    /// let mut heap = MinMaxHeap::from(vec![-10, -5, 1, 2, 4, 13]);
+    ///
+    /// heap.retain(|x| x % 2 == 0); // only keep even numbers
+    ///
+    /// let mut vec = heap.into_vec();
+    /// vec.sort();
+    /// assert_eq!(vec, [-10, 2, 4])
+    /// ```
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.0.retain(f);
+        self.rebuild();
+    }
+
     /// Caller must ensure that `pos` is a valid index in `self.0`.
     #[inline]
     unsafe fn trickle_down_min(&mut self, pos: usize) {
