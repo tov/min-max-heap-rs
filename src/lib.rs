@@ -288,7 +288,7 @@ impl<T: Ord> MinMaxHeap<T> {
             return Some(element);
         }
 
-        // Heap was empty, so no reordering is neessary
+        // Heap was empty, so no reordering is necessary
         self.0.push(element);
         None
     }
@@ -331,7 +331,7 @@ impl<T: Ord> MinMaxHeap<T> {
             return Some(element);
         }
 
-        // Heap was empty, so no reordering is neessary
+        // Heap was empty, so no reordering is necessary
         self.0.push(element);
         None
     }
@@ -506,7 +506,7 @@ impl<T> MinMaxHeap<T> {
     /// Returns a draining iterator over the min-max-heap’s elements in
     /// descending (max-first) order.
     ///
-    /// *<<1) on creation, and *O*(log *n*) for each `next()` operation.
+    /// *O*(1) on creation, and *O*(log *n*) for each `next()` operation.
     pub fn drain_desc(&mut self) -> DrainDesc<T> {
         DrainDesc(self)
     }
