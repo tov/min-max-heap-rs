@@ -25,8 +25,8 @@
 
 A min-max-heap is like a binary heap, but it allows extracting both the
 minimum and maximum value efficiently. In particular, finding either the
-minimum or maximum element is `O(1)`. A removal of either extremum, or
-an insertion, is `O(log n)`.
+minimum or maximum element is worst-case *O*(1) time. A removal of either
+extreme, or an insertion, is worst-case *O*(log *n*) time.
 
 ## Usage
 
@@ -41,8 +41,19 @@ This crate supports Rust version 1.46 and later.
 
 ## References
 
-My reference for a min-max heap is
-[here](http://cglab.ca/~morin/teaching/5408/refs/minmax.pdf). Much
-of this code is also based on `BinaryHeap` from the standard
-library.
+  - M. D. Atkinson, J.-R. Sack, N. Santoro, and T. Strothot.
+    Ian Munro (ed.). “[Min-Max Heaps and Generalized Priority
+    Queues][Atkinson86].” In *Communications of the ACM.* 29(10):
+    996–1000, June 1996. \[[pdf][Atkinson86]\]
 
+  - The Rust Standard Library’s [`BinaryHeap`] API and
+    implementation. \[[src][binary_heap.rs]\]
+
+[Atkinson86]:
+  <http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf>
+
+[`BinaryHeap`]:
+  std::collections::binary_heap::BinaryHeap
+
+[binary_heap.rs]:
+  <https://doc.rust-lang.org/stable/src/alloc/collections/binary_heap.rs.html>
