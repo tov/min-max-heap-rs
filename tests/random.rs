@@ -88,13 +88,16 @@ impl<T: Clone + Ord> Tester<T> {
     }
 
     fn check_script(&mut self, script: &Script<T>) -> bool {
-        script.0.iter().all(|&(cmd, ref elt)|
-            self.check_command(cmd, elt) && self.check_extrema())
+        script.0
+            .iter()
+            .all(|&(cmd, ref elt)| self.do_checks(cmd, elt))
     }
 
-    fn check_extrema(&self) -> bool {
-        self.real.peek_min() == self.fake.peek_min() &&
-            self.real.peek_max() == self.fake.peek_max()
+    fn do_checks(&mut self, cmd: Command, elt: &T) -> bool {
+        self.check_command(cmd, elt)
+            && self.real.len() == self.fake.len()
+            && self.real.peek_min() == self.fake.peek_min()
+            && self.real.peek_max() == self.fake.peek_max()
     }
 
     fn check_command(&mut self, cmd: Command, elt: &T) -> bool {
