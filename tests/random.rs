@@ -1,6 +1,4 @@
 use quickcheck::{Arbitrary, Gen, quickcheck};
-use rand::prelude::*;
-use rand::distributions::WeightedIndex;
 
 mod fake_heap;
 
@@ -27,27 +25,26 @@ enum Command {
 struct Script<T>(Vec<(Command, T)>);
 
 impl Arbitrary for Command {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        use crate::Command::*;
-
-        let choices = [
-            (3, Push),
-            (1, PopMin),
-            (1, PopMax),
-            (1, PushPopMin),
-            (1, PushPopMax),
-            (1, ReplaceMin),
-            (1, ReplaceMax),
-        ];
-
-        let dist = WeightedIndex::new(choices.iter().map(|p| p.0)).unwrap();
-
-        choices[dist.sample(g)].1
+    fn arbitrary(g: &mut Gen) -> Self {
+        g.choose(COMMAND_FREQS).copied().unwrap_or(Command::Push)
     }
 }
 
+const COMMAND_FREQS: &[Command] = {
+    use Command::*;
+    &[
+        Push, Push, Push,
+        PopMin,
+        PopMax,
+        PushPopMin,
+        PushPopMax,
+        ReplaceMin,
+        ReplaceMax,
+    ]
+};
+
 impl<T: Arbitrary> Arbitrary for Script<T> {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+    fn arbitrary(g: &mut Gen) -> Self {
         Script((0 .. SCRIPT_LENGTH)
             .map(|_| (Command::arbitrary(g), T::arbitrary(g)))
             .collect())
@@ -89,7 +86,7 @@ impl<T: Clone + Ord> Tester<T> {
     }
 
     fn check_command(&mut self, cmd: Command, elt: &T) -> bool {
-        use crate::Command::*;
+        use Command::*;
 
         let e1 = elt.clone();
         let e2 = elt.clone();
